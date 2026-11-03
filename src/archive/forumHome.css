@@ -1,0 +1,933 @@
+/*
+ * 青河同城 · 论坛首页（Forum Home）
+ * 刊头大字保留几何长笔画标题字；其余字体、色票与 UI 框（缝线外框、纸质标签、档案纸卡、信息板卡片）
+ * 与帖子页（archive.css）统一。背景底色保持论坛首页自己的深色。
+ * 只作用于 .ab-page-forum，其余档案页沿用 archive.css。
+ */
+
+/* 站酷庆科黄油体（SIL OFL 1.1），由 scripts/build-display-font.mjs 生成子集 */
+@font-face {
+  font-family: "Qinghe Display";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("/fonts/qinghe-display.woff2") format("woff2");
+}
+
+.ab.ab-page-forum {
+  /* 刊头大字保留几何标题体；其余文字与帖子页统一为宋体 / 楷体 / 等宽三套 */
+  --fh-display: "Qinghe Display", "Qinghe Song", "Noto Serif SC", serif;
+  --fh-ground: #111410;
+  /* 纸色、墨色、砖红、文字与线色全部取帖子页（archive.css）的同一套色票 */
+  --fh-paper: var(--ab-paper);
+  --fh-paper-light: var(--ab-paper-light);
+  --fh-paper-deep: var(--ab-paper-deep);
+  --fh-ink: var(--ab-ink);
+  --fh-ink-soft: var(--ab-ink-soft);
+  --fh-text: var(--ab-text);
+  --fh-dim: var(--ab-text-dim);
+  --fh-faint: #857f6b;
+  --fh-line: var(--ab-line);
+  --fh-line-strong: var(--ab-line-strong);
+  --fh-red: var(--ab-brick);
+  --fh-red-hi: var(--ab-brick-hi);
+  /* 纸面纤维：极轻的褐色颗粒，不参与混合，避免把纸压脏 */
+  --fh-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .23 0 0 0 0 .13 0 0 0 -.7 .4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  /* 印刷磨损：绝大部分不透明，零星露出底色 */
+  --fh-wear: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -16 0 0 0 13.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23w)'/%3E%3C/svg%3E");
+
+  background:
+    radial-gradient(ellipse 120% 95% at 40% 45%, transparent 50%, rgba(0, 0, 0, 0.62) 100%),
+    var(--fh-grain),
+    linear-gradient(180deg, #151913 0%, #11140f 55%, #0d100c 100%);
+  background-size: auto, 220px 220px, auto;
+  color: var(--fh-text);
+}
+
+.ab.ab-page-forum ::selection {
+  color: var(--fh-paper-light);
+  background: var(--fh-red);
+}
+
+/* 外框：直接沿用帖子页的缝线内框与四角护角（archive.css .ab::before / ::after） */
+
+.ab.ab-page-forum .ab-fx {
+  background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px);
+  opacity: 0.55;
+  animation: none;
+}
+
+.ab.ab-page-forum .ab-fx::after {
+  opacity: 0.5;
+}
+
+/* ---------- 旧电视台场景：右上角低透明度底图 ---------- */
+
+.fh-scene {
+  position: absolute;
+  z-index: 0;
+  top: 0.9em;
+  right: 0.9em;
+  width: 60%;
+  height: 54%;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent 0, #000 48%),
+    linear-gradient(180deg, #000 34%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, transparent 0, #000 48%),
+    linear-gradient(180deg, #000 34%, transparent 100%);
+  mask-composite: intersect;
+}
+
+.fh-scene img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 34%;
+  filter: grayscale(0.7) sepia(0.3) contrast(1.15) brightness(0.86);
+  opacity: 0.6;
+}
+
+/* CRT 扫描纹只落在场景上，不压正文 */
+.fh-scene::after {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.32) 0 1px, transparent 1px 3px);
+  content: "";
+}
+
+/* ---------- 顶栏：只留返回键与来源；按键与来源样式与帖子页一致 ---------- */
+
+.ab-page-forum .ab-top {
+  margin-top: 1.7em;
+  padding: 0 0.2em;
+  border-bottom: 0;
+  box-shadow: none;
+}
+
+.ab-page-forum .ab-top-meta {
+  text-shadow: 0 1px 6px #000;
+}
+
+.ab-page-forum .ab-back:disabled {
+  opacity: 0.55;
+}
+
+/* ---------- 版面网格 ---------- */
+
+.ab-page-forum .ab-board {
+  display: grid;
+  padding: 0 2.6em 1.4em;
+  scrollbar-color: rgba(221, 211, 183, 0.32) transparent;
+}
+
+.fh {
+  display: grid;
+  width: min(100%, 86em);
+  min-height: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(16em, 20em);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    "mast mast"
+    "list rail";
+  column-gap: 2.8em;
+  margin: 0 auto;
+}
+
+/* ---------- 刊头：大标题是画面的重心 ---------- */
+
+.fh-mast {
+  display: grid;
+  grid-area: mast;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  grid-template-areas:
+    "title sub ."
+    "latin sub .";
+  align-items: end;
+  column-gap: 1.5em;
+  padding: 1.1em 0 5.3em;
+}
+
+.fh-title {
+  display: flex;
+  grid-area: title;
+  align-items: center;
+  margin: 0;
+  color: var(--fh-paper);
+  font-family: var(--fh-display);
+  font-size: 8.6em;
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: 0.015em;
+  white-space: nowrap;
+  /* 与帖子标题相同的暗红套印错位 */
+  text-shadow: 0.022em 0.018em 0 rgba(156, 54, 39, 0.55);
+  -webkit-mask-image: var(--fh-wear);
+  -webkit-mask-size: 260px 260px;
+  mask-image: var(--fh-wear);
+  mask-size: 260px 260px;
+}
+
+/* 频道号：一道几何短横 + 数字，像老电视台的台号 */
+.fh-title-ch {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.06em;
+}
+
+.fh-title-ch i {
+  display: block;
+  width: 0.36em;
+  height: 0.085em;
+  margin: 0 0.08em 0 0.04em;
+  background: currentColor;
+}
+
+.fh-latin {
+  grid-area: latin;
+  margin: 0.7em 0 0;
+  color: var(--fh-faint);
+  font-family: var(--ab-mono);
+  font-size: 0.64em;
+  letter-spacing: 0.34em;
+}
+
+/* 副标题：两字一行竖排，压在大标题的基线上 */
+.fh-sub {
+  display: grid;
+  grid-area: sub;
+  align-self: end;
+  justify-items: end;
+  gap: 0.5em;
+  padding-bottom: 0.1em;
+}
+
+.fh-sub strong {
+  display: grid;
+  color: var(--fh-paper);
+  font-family: var(--fh-display);
+  font-size: 2.9em;
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: 0.06em;
+  text-shadow: 0.05em 0.04em 0 rgba(156, 54, 39, 0.55);
+}
+
+.fh-sub small {
+  padding-top: 0.45em;
+  border-top: 1px solid var(--fh-line-strong);
+  color: var(--fh-faint);
+  font-family: var(--ab-mono);
+  font-size: 0.62em;
+  letter-spacing: 0.24em;
+}
+
+/* ---------- 频道分区：错位压在刊头底边 ---------- */
+
+.fh-channels {
+  display: flex;
+  grid-area: mast;
+  align-self: end;
+  justify-self: end;
+  margin: 0 0 0.9em;
+  border-bottom: 1px solid var(--fh-line-strong);
+  grid-column: 1;
+}
+
+.fh-channels > span {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.6em;
+  padding: 0.5em 1.15em 0.44em;
+  border-left: 1px solid var(--fh-line);
+  color: var(--fh-dim);
+  font-family: var(--ab-song);
+  font-size: 0.86em;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+}
+
+.fh-channels > span:first-child {
+  border-left: 0;
+}
+
+.fh-channels small {
+  color: var(--fh-faint);
+  font-family: var(--ab-mono);
+  font-size: 0.82em;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+/* 当前分区：与帖子页「青河同城」相同的纸质标签 + 砖红左边条 */
+.fh-channels > span.is-on {
+  padding-left: 1.5em;
+  color: var(--ab-ink);
+  background:
+    var(--ab-noise),
+    linear-gradient(180deg, var(--ab-paper-light), var(--ab-paper));
+  background-size: 180px 180px, auto;
+  background-blend-mode: multiply, normal;
+  box-shadow: 0.15em 0.2em 0 rgba(0, 0, 0, 0.35);
+}
+
+.fh-channels > span.is-on::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0.42em;
+  background: var(--ab-brick);
+  content: "";
+}
+
+.fh-channels > span.is-on small {
+  color: var(--ab-brick-ink);
+  font-weight: 700;
+}
+
+.fh-channels > span.is-on + span {
+  border-left-color: transparent;
+}
+
+/* ---------- 主题列表：左侧档案索引 + 细线分割 ---------- */
+
+.fh-list {
+  position: relative;
+  display: grid;
+  grid-area: list;
+  align-content: start;
+  margin: 0;
+  padding: 0 0 0 4.4em;
+  list-style: none;
+  counter-reset: fh-row;
+}
+
+/* 频道刻度尺：一道竖线 + 细刻度，底部落款 CH / BBS */
+.fh-list::before {
+  position: absolute;
+  top: 0;
+  bottom: 2.6em;
+  left: 2.5em;
+  width: 0.4em;
+  background:
+    linear-gradient(var(--fh-line-strong), var(--fh-line-strong)) 0 0 / 1px 100% no-repeat,
+    repeating-linear-gradient(180deg, var(--fh-line) 0 1px, transparent 1px 1.2em) 0 0 / 100% 100%;
+  content: "";
+}
+
+.fh-list::after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 2.9em;
+  color: var(--fh-faint);
+  font-family: var(--ab-mono);
+  font-size: 0.6em;
+  line-height: 1.25;
+  letter-spacing: 0.12em;
+  text-align: right;
+  white-space: pre;
+  content: "CH\A BBS";
+}
+
+.fh-list > li {
+  position: relative;
+  counter-increment: fh-row;
+}
+
+/* 每一条目在刻度尺上的主刻度 */
+.fh-list > li::before {
+  position: absolute;
+  top: 50%;
+  left: -1.9em;
+  width: 0.8em;
+  height: 1px;
+  background: var(--fh-line-strong);
+  content: "";
+  transition: width 180ms ease, height 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+/* 主刻度旁的频道号 */
+.fh-list > li::after {
+  position: absolute;
+  top: 50%;
+  left: -5em;
+  width: 2.2em;
+  color: var(--fh-faint);
+  font-family: var(--ab-mono);
+  font-size: 0.78em;
+  letter-spacing: 0.06em;
+  text-align: right;
+  content: counter(fh-row, decimal-leading-zero);
+  transform: translateY(-50%);
+  transition: color 180ms ease;
+}
+
+/* 当前选中条目：刻度变为一枚砖红指针 */
+.fh-list > li:has(> .fh-item:hover),
+.fh-list > li:has(> .fh-item:focus-visible) {
+  z-index: 1;
+}
+
+.fh-list > li:has(> .fh-item:hover)::before,
+.fh-list > li:has(> .fh-item:focus-visible)::before,
+.fh-list:not(:has(.fh-item:hover, .fh-item:focus-visible)) > li:has(> .fh-item.is-default)::before {
+  width: 0.5em;
+  height: 1.7em;
+  background: var(--fh-red-hi);
+  transform: translate(0.1em, -50%);
+}
+
+.fh-list > li:has(> .fh-item:hover)::after,
+.fh-list > li:has(> .fh-item:focus-visible)::after,
+.fh-list:not(:has(.fh-item:hover, .fh-item:focus-visible)) > li:has(> .fh-item.is-default)::after {
+  color: var(--fh-paper-light);
+}
+
+.fh-item {
+  position: relative;
+  display: grid;
+  width: 100%;
+  grid-template-columns: 3.4em minmax(0, 1fr) auto;
+  grid-template-areas: "tag head meta";
+  align-items: center;
+  column-gap: 1.4em;
+  padding: 1.5em 1.4em 1.5em 0.9em;
+  border: 0;
+  border-bottom: 1px solid var(--fh-line);
+  color: var(--fh-text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.fh-tag {
+  display: grid;
+  grid-area: tag;
+  justify-items: center;
+  gap: 0.05em;
+  padding: 0.32em 0 0.28em;
+  border: 1px solid var(--fh-line-strong);
+  color: var(--fh-dim);
+  font-family: var(--ab-song);
+  font-size: 0.86em;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: 0.1em;
+  text-indent: 0.1em;
+}
+
+/* 编号与帖子页楼层号一致：等宽字 */
+.fh-tag b {
+  font-family: var(--ab-mono);
+  font-size: 1.24em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-indent: 0;
+}
+
+.fh-headline {
+  grid-area: head;
+  overflow: hidden;
+  color: var(--fh-text);
+  font-family: var(--ab-song);
+  font-size: 1.5em;
+  font-weight: 900;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fh-meta {
+  display: flex;
+  grid-area: meta;
+  align-items: center;
+  color: var(--fh-dim);
+  font-family: var(--ab-mono);
+  font-size: 0.72em;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.fh-meta > span + span,
+.fh-crumb > span + span {
+  margin-left: 1em;
+  padding-left: 1em;
+  border-left: 1px solid currentColor;
+  border-left-color: color-mix(in srgb, currentColor 35%, transparent);
+}
+
+/* 置顶条：两行大标题，独占更高的版面 */
+.fh-item.is-lead {
+  grid-template-columns: 4.6em minmax(0, 1fr) auto;
+  grid-template-areas:
+    "tag head time"
+    "tag crumb go";
+  align-items: start;
+  column-gap: 1.6em;
+  row-gap: 0;
+  margin-bottom: 0.5em;
+  padding: 0 1.4em 0 0;
+  border: 1px solid var(--fh-line-strong);
+  background: rgba(221, 211, 183, 0.035);
+}
+
+.fh-item.is-lead .fh-tag {
+  align-self: stretch;
+  align-content: center;
+  gap: 0.15em;
+  border: 0;
+  border-right: 1px solid var(--fh-line-strong);
+  font-size: 1.04em;
+}
+
+.fh-item.is-lead .fh-tag b {
+  font-size: 1.7em;
+}
+
+.fh-item.is-lead .fh-headline {
+  display: grid;
+  padding: 0.72em 0 0.62em;
+  font-size: 2.2em;
+  line-height: 1.28;
+  letter-spacing: 0.035em;
+  white-space: normal;
+}
+
+.fh-time {
+  grid-area: time;
+  padding-top: 1.35em;
+  color: var(--fh-dim);
+  font-family: var(--ab-mono);
+  font-size: 0.74em;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.fh-crumb {
+  display: flex;
+  grid-area: crumb;
+  align-items: center;
+  margin-bottom: 0.95em;
+  padding-top: 0.6em;
+  border-top: 1px solid var(--fh-line);
+  color: var(--fh-dim);
+  font-size: 0.8em;
+  letter-spacing: 0.08em;
+}
+
+.fh-go {
+  display: inline-flex;
+  grid-area: go;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.9em;
+  margin-bottom: 0.95em;
+  padding-top: 0.55em;
+  border-top: 1px solid var(--fh-line);
+  color: var(--fh-dim);
+  font-family: var(--ab-mono);
+  font-size: 0.8em;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.fh-go svg {
+  width: 1.5em;
+  height: 1.5em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  transition: transform 180ms ease;
+}
+
+/* ---------- 选中：与帖子页主楼同一张泛黄档案纸 ---------- */
+
+.fh-item:hover,
+.fh-item:focus-visible,
+.fh-item.is-default {
+  z-index: 1;
+  border-bottom-color: transparent;
+  color: var(--fh-ink);
+  background:
+    radial-gradient(ellipse 34% 60% at 92% 12%, rgba(150, 104, 44, 0.16), transparent 70%),
+    radial-gradient(ellipse 26% 60% at 7% 92%, rgba(130, 92, 42, 0.15), transparent 70%),
+    var(--ab-fibre),
+    var(--ab-noise),
+    linear-gradient(172deg, var(--ab-paper-light) 0%, var(--ab-paper) 58%, var(--ab-paper-deep) 100%);
+  background-size: auto, auto, 360px 360px, 180px 180px, auto;
+  background-blend-mode: normal, normal, multiply, multiply, normal;
+  box-shadow:
+    inset 0 0 2.2em rgba(120, 86, 40, 0.24),
+    inset 0 0 0 1px rgba(80, 60, 30, 0.16),
+    0 0 0 1px var(--ab-brick),
+    0.2em 0.3em 0 rgba(0, 0, 0, 0.4),
+    0 0.7em 1.6em rgba(0, 0, 0, 0.5);
+  outline: none;
+}
+
+.fh-item.is-lead:is(:hover, :focus-visible, .is-default) {
+  border-color: transparent;
+}
+
+/* 选中纸卡右上角的折角 */
+.fh-item:is(:hover, :focus-visible, .is-default)::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0.95em;
+  height: 0.95em;
+  background: linear-gradient(225deg, var(--fh-ground) 0 50%, #b3a37c 50% 100%);
+  box-shadow: -1px 1px 2px rgba(0, 0, 0, 0.25);
+  content: "";
+}
+
+.fh-list:has(.fh-item:hover, .fh-item:focus-visible) .fh-item.is-default:not(:hover):not(:focus-visible)::after {
+  content: none;
+}
+
+.fh-item:is(:hover, :focus-visible, .is-default) .fh-headline {
+  color: var(--fh-ink);
+}
+
+.fh-item:is(:hover, :focus-visible, .is-default) .fh-tag {
+  border-color: var(--fh-red);
+  color: var(--fh-paper-light);
+  background: var(--fh-red);
+}
+
+.fh-item:is(:hover, :focus-visible, .is-default) :is(.fh-meta, .fh-time, .fh-crumb, .fh-go) {
+  color: var(--fh-ink-soft);
+}
+
+.fh-item:is(:hover, :focus-visible, .is-default) :is(.fh-crumb, .fh-go) {
+  border-top: 1px dashed var(--ab-ink-faint);
+}
+
+.fh-item:is(:hover, :focus-visible, .is-default) .fh-go {
+  color: var(--fh-ink);
+}
+
+.fh-item:is(:hover, :focus-visible) .fh-go svg {
+  transform: translateX(0.2em);
+}
+
+/* 键盘焦点：纸卡外再加一道纸色描边 */
+.fh-item:focus-visible {
+  box-shadow:
+    inset 0 0 2.2em rgba(120, 86, 40, 0.24),
+    0 0 0 1px var(--ab-brick),
+    0 0 0 4px rgba(236, 227, 201, 0.85),
+    0 0.7em 1.6em rgba(0, 0, 0, 0.5);
+}
+
+/* 玩家移到其他条目时，默认的置顶条退回深色 */
+.fh-list:has(.fh-item:hover, .fh-item:focus-visible) .fh-item.is-default:not(:hover):not(:focus-visible) {
+  z-index: 0;
+  color: var(--fh-text);
+  background: rgba(221, 211, 183, 0.035);
+  box-shadow: none;
+}
+
+.fh-list:has(.fh-item:hover, .fh-item:focus-visible) .fh-item.is-lead.is-default:not(:hover):not(:focus-visible) {
+  border-color: var(--fh-line-strong);
+}
+
+.fh-list:has(.fh-item:hover, .fh-item:focus-visible) .fh-item.is-default:not(:hover):not(:focus-visible) .fh-headline {
+  color: var(--fh-text);
+}
+
+.fh-list:has(.fh-item:hover, .fh-item:focus-visible) .fh-item.is-default:not(:hover):not(:focus-visible) .fh-tag {
+  border-color: transparent var(--fh-line-strong) transparent transparent;
+  color: var(--fh-red-hi);
+  background: transparent;
+}
+
+.fh-list:has(.fh-item:hover, .fh-item:focus-visible) .fh-item.is-default:not(:hover):not(:focus-visible) :is(.fh-time, .fh-crumb, .fh-go) {
+  color: var(--fh-dim);
+}
+
+.fh-list:has(.fh-item:hover, .fh-item:focus-visible) .fh-item.is-default:not(:hover):not(:focus-visible) :is(.fh-crumb, .fh-go) {
+  border-top: 1px solid var(--fh-line);
+}
+
+/* ---------- 右侧：版面状态卡（与帖子页「主题档案」同一种信息板卡片） ---------- */
+
+.fh-rail {
+  grid-area: rail;
+  align-self: start;
+  padding: 1.25em 1.4em 0.5em;
+  border: 1px solid var(--fh-line-strong);
+  background:
+    linear-gradient(180deg, rgba(221, 210, 180, 0.04), transparent 40%),
+    var(--ab-noise),
+    rgba(14, 18, 15, 0.86);
+  background-size: auto, 180px 180px, auto;
+  background-blend-mode: normal, soft-light, normal;
+  outline: 1px solid var(--ab-line);
+  outline-offset: -0.38em;
+}
+
+/* 标题区：与帖子页「回复」登记板相同的双线分隔 */
+.fh-rail-head {
+  display: flex;
+  align-items: center;
+  gap: 0.95em;
+  padding-bottom: 1.05em;
+  border-bottom: 3px double var(--fh-line-strong);
+}
+
+.fh-emblem {
+  width: 3.1em;
+  height: 3.1em;
+  flex: none;
+}
+
+.fh-emblem circle {
+  fill: var(--fh-red);
+}
+
+.fh-emblem path {
+  fill: none;
+  stroke: var(--fh-paper-light);
+  stroke-width: 2.4;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.fh-rail-head > div {
+  display: grid;
+  gap: 0.3em;
+}
+
+.fh-rail-head strong {
+  color: var(--fh-paper-light);
+  font-family: var(--ab-song);
+  font-size: 1.36em;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: 0.24em;
+}
+
+.fh-rail-head small {
+  color: var(--fh-faint);
+  font-family: var(--ab-mono);
+  font-size: 0.6em;
+  letter-spacing: 0.22em;
+}
+
+.fh-stats {
+  display: grid;
+  margin: 0;
+}
+
+.fh-stats > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 1em;
+  padding: 1.05em 0 0.95em;
+  border-bottom: 1px dashed var(--fh-line);
+}
+
+.fh-stats > div:last-child {
+  border-bottom: 0;
+}
+
+.fh-stats dt {
+  color: var(--fh-dim);
+  font-size: 0.86em;
+  letter-spacing: 0.12em;
+}
+
+.fh-stats dd {
+  margin: 0;
+  color: var(--fh-paper);
+  font-family: var(--ab-song);
+  font-size: 1.2em;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.fh-stats .is-count {
+  align-items: end;
+}
+
+.fh-stats .is-count dd {
+  position: relative;
+  padding-right: 0.32em;
+  font-size: 2.6em;
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+}
+
+/* 在线数旁的直播灯 */
+.fh-stats .is-count i {
+  position: absolute;
+  top: 0.04em;
+  right: 0;
+  width: 0.15em;
+  height: 0.15em;
+  border-radius: 50%;
+  background: var(--fh-red-hi);
+  animation: ab-lamp 1.8s ease-in-out infinite;
+}
+
+.fh-stats .is-text dd {
+  font-size: 1em;
+  letter-spacing: 0.14em;
+}
+
+/* 底部信号条：一格一格的老式电平表 */
+.fh-signal {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9em;
+  margin: 0.3em -1.4em -0.5em;
+  padding: 0.85em 1.4em 0.9em;
+  border-top: 1px solid var(--fh-line-strong);
+  background: rgba(221, 211, 183, 0.025);
+}
+
+.fh-signal > span:first-child {
+  color: var(--fh-dim);
+  font-size: 0.78em;
+  letter-spacing: 0.2em;
+}
+
+.fh-signal-bars {
+  display: flex;
+  align-items: end;
+  gap: 3px;
+  height: 0.9em;
+}
+
+.fh-signal-bars i {
+  flex: 1;
+  height: 100%;
+  background: rgba(221, 211, 183, 0.12);
+}
+
+.fh-signal-bars i.is-on {
+  background: var(--fh-red);
+}
+
+.fh-signal-bars i.is-on:nth-child(n + 6) {
+  background: var(--fh-red-hi);
+}
+
+.fh-signal small {
+  color: var(--fh-faint);
+  font-family: var(--ab-mono);
+  font-size: 0.66em;
+  letter-spacing: 0.08em;
+}
+
+/* ---------- 底部按键提示：沿用帖子页（台标徽记、荧光绿状态方块） ---------- */
+
+/* ---------- 窄屏 / 低高度 ---------- */
+
+@media (max-width: 0px) {
+  .fh {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto max-content auto auto;
+    grid-template-areas:
+      "mast"
+      "chan"
+      "list"
+      "rail";
+  }
+
+  .fh-mast {
+    padding-bottom: 1.2em;
+  }
+
+  .fh-title {
+    font-size: 4.6em;
+  }
+
+  .fh-sub strong {
+    font-size: 1.8em;
+  }
+
+  .fh-channels {
+    grid-area: chan;
+    justify-self: stretch;
+    margin: 0 0 0.9em;
+    overflow-x: auto;
+  }
+
+  .fh-list {
+    padding-left: 3.4em;
+  }
+
+  .fh-list::before {
+    left: 1.8em;
+  }
+
+  .fh-list > li::before {
+    left: -1.6em;
+  }
+
+  .fh-list > li::after {
+    left: -4em;
+    width: 1.8em;
+  }
+
+  .fh-item {
+    grid-template-columns: 3em minmax(0, 1fr);
+    grid-template-areas:
+      "tag head"
+      "tag meta";
+    row-gap: 0.3em;
+  }
+
+  .fh-item.is-lead {
+    grid-template-columns: 3.6em minmax(0, 1fr);
+    grid-template-areas:
+      "tag head"
+      "tag time"
+      "tag crumb"
+      "tag go";
+  }
+
+  .fh-item.is-lead .fh-headline {
+    font-size: 1.6em;
+  }
+
+  .fh-time {
+    padding-top: 0;
+  }
+
+  .fh-go {
+    justify-content: flex-start;
+    border-top: 0;
+  }
+
+  .fh-rail {
+    margin-top: 1.6em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fh-stats .is-count i {
+    animation: none;
+  }
+
+  .fh-item,
+  .fh-list > li::before,
+  .fh-go svg {
+    transition: none;
+  }
+}

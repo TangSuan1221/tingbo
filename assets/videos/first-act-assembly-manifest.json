@@ -1,0 +1,475 @@
+{
+  "version": 2,
+  "title": "停播之后：零号频道｜序章至第三幕调查完整流程",
+  "videoSpec": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "videoCodec": "h264",
+    "pixelFormat": "yuv420p",
+    "audioCodec": "aac",
+    "runtimeAudio": "native-h3-required"
+  },
+  "runtimePromptDocument": "./first-act-runtime-prompts.md",
+  "styleReference": "./runtime-references/lin-lan-lobby-style-reference.jpg",
+  "sessionInputs": {
+    "playerUsername": {
+      "requiredBeforeStart": true,
+      "minCharacters": 2,
+      "maxCharacters": 12,
+      "immutableDuringSession": true
+    }
+  },
+  "signalPostProcessPolicy": {
+    "continuousDisconnectNode": "PRE-A1-04",
+    "guaranteedAdjacentBursts": {
+      "nodes": ["PRE-A1-02+PRE-A1-03", "PRE-A1-05"],
+      "durationSeconds": [1.9, 2.85],
+      "firstDelaySeconds": [1.2, 2.6]
+    },
+    "intermittentNodes": [
+      "INT-A1-01",
+      "PRE-A2-02+PRE-A2-03+PRE-A2-04",
+      "INT-A2-01",
+      "INT-A2-02",
+      "PRE-A2-09+PRE-A2-10",
+      "runtimeVideo"
+    ],
+    "repeatDelaySeconds": [7.2, 14.8],
+    "excludedNodes": ["PRE-A2-05+PRE-A2-06", "usernameRecordOverlay"],
+    "pulsePatternSeconds": [0, 0.67, 1.46, 2.04],
+    "effects": [
+      "horizontalSignalTear",
+      "threeBlockSliceBursts",
+      "scanNoise",
+      "verticalTapeScratches",
+      "redCyanOffset",
+      "irregularLumaFlicker",
+      "briefBlackFlash",
+      "briefBloomFlash"
+    ]
+  },
+  "sequence": [
+    {
+      "id": "PRE-G-PART-01",
+      "type": "video",
+      "src": "./prologue/01.mp4",
+      "playback": "once",
+      "next": "PRE-G-PART-02"
+    },
+    {
+      "id": "PRE-G-PART-02",
+      "type": "video",
+      "src": "./prologue/02.mp4",
+      "playback": "once",
+      "next": "PRE-A1-01"
+    },
+    {
+      "id": "PRE-A1-01",
+      "type": "video",
+      "src": "./act-01/PRE-A1-01.mp4",
+      "playback": "once",
+      "next": "INT-A1-00"
+    },
+    {
+      "id": "INT-A1-00",
+      "type": "interaction",
+      "prompt": "弹幕里已经有人察觉身后的电视不对，但刷得太快，林岚还没注意。把异常说得更明确一点。",
+      "placeholder": "写下你想让林岚听见的话…",
+      "examples": ["快看你身后的电视！", "先别回头，听我说。"],
+      "examplesVisibleAfterHint": true,
+      "acceptsFreeText": true,
+      "onEnter": "SYS-A1-00",
+      "onSubmit": {
+        "requestRuntime": "RT-00",
+        "continueWaitingWith": "SYS-A1-00"
+      }
+    },
+    {
+      "id": "SYS-A1-00",
+      "type": "video",
+      "src": "./act-01/SYS-A1-00.mp4",
+      "playback": "loop",
+      "interruptWhenReady": "RT-00"
+    },
+    {
+      "id": "RT-00",
+      "type": "runtimeVideo",
+      "promptId": "RT-00",
+      "durationSeconds": {
+        "min": 5,
+        "max": 5
+      },
+      "audio": {
+        "source": "H3原生同步音轨",
+        "required": true,
+        "content": "林岚同步普通话低语、旧电视电流声和大厅底噪"
+      },
+      "references": [
+        "./runtime-references/RT-00-continuity-from-SYS-A1-00.jpg",
+        "./runtime-references/lin-lan-lobby-style-reference.jpg"
+      ],
+      "next": "PRE-A1-02+PRE-A1-03"
+    },
+    {
+      "id": "PRE-A1-02+PRE-A1-03",
+      "type": "video",
+      "src": "./act-01/PRE-A1-02+PRE-A1-03.mp4",
+      "playback": "once",
+      "next": "PRE-A1-04"
+    },
+    {
+      "id": "PRE-A1-04",
+      "type": "video",
+      "src": "./act-01/PRE-A1-04.mp4",
+      "playback": "once",
+      "audienceDisconnectTimeline": [
+        { "rangeSeconds": [0, 4], "visibleComments": "8-10", "onlineCount": 59, "interference": "none" },
+        { "rangeSeconds": [4, 8.5], "visibleComments": 6, "onlineCount": 18, "interference": "light" },
+        { "rangeSeconds": [8.5, 12.2], "visibleComments": 3, "onlineCount": 3, "interference": "medium" },
+        { "rangeSeconds": [12.2, 16.064], "visibleComments": 1, "onlineCount": 1, "interference": "strong" }
+      ],
+      "survivingComment": "currentPlayerLatestComment",
+      "postProcess": [
+        "horizontalSignalTear",
+        "scanNoise",
+        "subtleRedCyanOffset",
+        "irregularLumaFlicker",
+        "briefBlackFlash",
+        "briefBloomFlash",
+        "threeBlockSliceBursts"
+      ],
+      "next": "PRE-A1-05"
+    },
+    {
+      "id": "PRE-A1-05",
+      "type": "video",
+      "src": "./act-01/PRE-A1-05.mp4",
+      "playback": "once",
+      "next": "INT-A1-01"
+    },
+    {
+      "id": "INT-A1-01",
+      "type": "interaction",
+      "prompt": "频道里只剩你还在线。林岚停在岔口，等你替她做决定。",
+      "placeholder": "写下你此刻最想告诉她的话…",
+      "examples": ["先去控制室。", "去演播厅看看。", "再检查一下大厅里的电视。", "现在离开这里。"],
+      "examplesVisibleAfterHint": true,
+      "acceptsFreeText": true,
+      "onEnter": "INS-A1-06G",
+      "onSubmit": {
+        "requestRuntime": "RT-01",
+        "continueWaitingWith": "INS-A1-06G",
+        "runtimePlaybackGate": "INS-A1-06G_ENDED"
+      }
+    },
+    {
+      "id": "INS-A1-06G",
+      "type": "video",
+      "src": "./act-01/INS-A1-06G.mp4",
+      "playback": "onceThenHoldLastFrame",
+      "interruptWhenReady": false,
+      "nextWhenEndedAndReady": "RT-01",
+      "narrativeConstraint": "只作等待遮罩，不得改变玩家的探索方向。"
+    },
+    {
+      "id": "RT-01",
+      "type": "runtimeVideo",
+      "promptId": "RT-01",
+      "durationSeconds": {
+        "min": 10,
+        "max": 10
+      },
+      "audio": {
+        "source": "H3原生同步音轨",
+        "required": true,
+        "content": "与动作同步的脚步、衣料、呼吸、空间混响，以及林岚在前置画面内或后置画面外的回应",
+        "speakerConstraint": "全片只能出现林岚一名说话者；声线匹配PRE：年轻成年中国女性自然普通话，女性偏低音区、沉稳克制、略带贴近手机收音的轻微沙感、语速从容；禁止高音少女腔、甜美可爱、活泼撒娇、夸张气声、儿童声、男性、报幕员、旁白或第二说话者"
+      },
+      "referenceSelection": {
+        "CONTROL_ROOM": "./runtime-references/RT-01-route-control-room-from-PRE-A1-05.jpg",
+        "STUDIO": "./runtime-references/RT-01-route-studio-from-PRE-A1-05.jpg",
+        "LOBBY": "./runtime-references/RT-01-route-lobby-from-PRE-G01.jpg",
+        "LEAVE": "./runtime-references/RT-01-continuity-from-INS-A1-06G.jpg",
+        "OTHER": "./runtime-references/RT-01-continuity-from-INS-A1-06G.jpg"
+      },
+      "referenceRule": "先解析玩家方向，再选择专属首帧；CONTROL_ROOM/STUDIO/LOBBY逐帧延续新版后置场景，LEAVE/OTHER逐帧延续INS-A1-06G尾部前置近景；禁止改造首帧空间或跳到陌生场景。",
+      "styleReference": "./runtime-references/lin-lan-lobby-style-reference.jpg",
+      "motionConstraint": "单条10秒视频内完成路线行动和结果，不再串联RTP-A2-01A至E；STUDIO发现门缝线缆通向控制室后回头，LOBBY在指定大厅检查黑屏电视后返回控制室；全程单镜头、连续步伐和真实视差。",
+      "nextByIntent": {
+        "CONTROL_ROOM": "PRE-A2-02+PRE-A2-03+PRE-A2-04",
+        "STUDIO": "PRE-A2-02+PRE-A2-03+PRE-A2-04",
+        "LOBBY": "PRE-A2-02+PRE-A2-03+PRE-A2-04",
+        "LEAVE": "SYS-A2-EARLY-LEAVE",
+        "OTHER": "INT-A2-00"
+      },
+      "writesStateByIntent": {
+        "CONTROL_ROOM": ["DIRECT_CONTROL_ROUTE"],
+        "STUDIO": ["STUDIO_CABLE_TO_CONTROL"],
+        "LOBBY": ["LOBBY_TV_CHECKED_NORMAL"],
+        "LEAVE": ["EARLY_LEAVE"]
+      }
+    },
+    {
+      "id": "INT-A2-00",
+      "type": "interaction",
+      "prompt": "林岚没有听懂你的意思。把最重要的行动再说得明确一点。",
+      "acceptsFreeText": true,
+      "examplesVisibleAfterHint": true,
+      "onSubmit": "RT-01"
+    },
+    {
+      "id": "PRE-A2-02+PRE-A2-03+PRE-A2-04",
+      "type": "video",
+      "src": "./act-02/PRE-A2-02+PRE-A2-03+PRE-A2-04.mp4",
+      "playback": "once",
+      "next": "INT-A2-01"
+    },
+    {
+      "id": "INT-A2-01",
+      "type": "interaction",
+      "prompt": "十三号屏幕已经抢先一步。林岚看向你，等一个能证明它不只是录像的办法。",
+      "placeholder": "写下你的办法…",
+      "examples": [
+        "对比十三号屏幕和旁边的屏幕。",
+        "先关掉控制台电源。",
+        "先别动，等屏幕里的她自己行动。",
+        "故意不要照屏幕里的动作做。"
+      ],
+      "examplesVisibleAfterHint": true,
+      "acceptsFreeText": true,
+      "externalInvestigation": {
+        "phoneApps": ["LIVE", "BROWSER", "EVIDENCE"],
+        "recognizedTerms": ["青河电视台", "13号监视器"],
+        "searchMatch": {
+          "stationTerms": ["青河", "电视台"],
+          "deviceTerms": ["13号", "十三号", "监视器", "设备", "电源"]
+        },
+        "result": "2014年监视器墙供电改造记录",
+        "evidenceTag": "BREAKER_MAP",
+        "effect": "force-CUT_POWER-and-C04-operation"
+      },
+      "onEnter": "SYS-A2-01-WAIT",
+      "onSubmit": {
+        "requestRuntime": "RT-02",
+        "continueWaitingWith": "SYS-A2-01-WAIT"
+      }
+    },
+    {
+      "id": "SYS-A2-01-WAIT",
+      "type": "video",
+      "src": "./act-02/SYS-A2-01-wait.mp4",
+      "playback": "loop",
+      "interruptWhenReady": "RT-02"
+    },
+    {
+      "id": "RT-02",
+      "type": "runtimeVideo",
+      "promptId": "RT-02",
+      "durationSeconds": {
+        "min": 8,
+        "max": 10
+      },
+      "durationByIntent": {
+        "CUT_POWER": 10,
+        "OTHER": 8
+      },
+      "reference": "./runtime-references/RT-02-wide-control-console-composite.jpg",
+      "cameraConstraint": "全程为林岚手机后置第一人称原始画面；手机本体、手机边框、双手持机姿势、相机UI和现实中的林岚不得出现；验证时最多允许一只空手从画面下缘短暂入镜。",
+      "audio": "native-h3-required",
+      "voiceProfile": "默认只有现实林岚一名说话者，匹配PRE中的女性偏低音区、沉稳克制声线。CUT_POWER是唯一例外：现实林岚先在手机后方惊呼“怎么断电了屏幕依旧亮着！”，说完后未来林岚才经13号监视器回答“没用的”；禁止交换归属、重叠对白、少女腔、男声、旁白或其他说话者",
+      "next": "PRE-A2-05+PRE-A2-06"
+    },
+    {
+      "id": "PRE-A2-05+PRE-A2-06",
+      "type": "video",
+      "src": "./act-02/PRE-A2-05+PRE-A2-06.mp4",
+      "playback": "once",
+      "dynamicOverlays": [
+        {
+          "value": "playerUsername",
+          "target": "最后观众记录第一行",
+          "startSeconds": 7.6,
+          "endSeconds": 16,
+          "tracking": "paper-push-in-and-dialogue-hold",
+          "font": "SimSun",
+          "blendMode": "multiply"
+        }
+      ],
+      "next": "INT-A2-02"
+    },
+    {
+      "id": "INT-A2-02",
+      "type": "interaction",
+      "prompt": "十二年前的纸上写着本局用户名。林岚没有催你，但她在等一个解释。",
+      "placeholder": "写下你愿意告诉她的答案…",
+      "examples": ["我从没来过这里。", "也许我们已经经历过不止一次。", "别再查了，现在离开。"],
+      "examplesVisibleAfterHint": true,
+      "acceptsFreeText": true,
+      "onEnter": "SYS-A2-02-WAIT",
+      "onSubmit": {
+        "requestRuntime": "RT-02B",
+        "continueWaitingWith": "SYS-A2-02-WAIT"
+      }
+    },
+    {
+      "id": "SYS-A2-02-WAIT",
+      "type": "video",
+      "src": "./act-02/SYS-A2-02-wait.mp4",
+      "playback": "loop",
+      "interruptWhenReady": "RT-02B"
+    },
+    {
+      "id": "RT-02B",
+      "type": "runtimeVideo",
+      "promptId": "RT-02B",
+      "durationSeconds": {
+        "min": 10,
+        "max": 10
+      },
+      "reference": "./runtime-references/RT-02-wide-control-console-composite.jpg",
+      "audio": "native-h3-required",
+      "next": "PRE-A2-09+PRE-A2-10"
+    },
+    {
+      "id": "PRE-A2-09+PRE-A2-10",
+      "type": "video",
+      "src": "./act-02/PRE-A2-09+PRE-A2-10.mp4",
+      "playback": "once",
+      "next": "PRE-A3-01+PRE-A3-02"
+    },
+    {
+      "id": "PRE-A3-01+PRE-A3-02",
+      "type": "video",
+      "src": "./act-03/PRE-A3-01+PRE-A3-02.mp4",
+      "playback": "once",
+      "durationSeconds": 18,
+      "next": "PRE-A3-03+PRE-A3-04"
+    },
+    {
+      "id": "PRE-A3-03+PRE-A3-04",
+      "type": "video",
+      "src": "./act-03/PRE-A3-03+PRE-A3-04.mp4",
+      "playback": "once",
+      "durationSeconds": 24.064,
+      "cacheSegments": [
+        { "id": "CACHE-A3-01", "src": "./act-03/CACHE-A3-01.mp4", "clue": "晚安青河" },
+        { "id": "CACHE-A3-02", "src": "./act-03/CACHE-A3-02.mp4", "clue": "林秋 青河电视台" }
+      ],
+      "next": "INT-A3-00"
+    },
+    {
+      "id": "INT-A3-00",
+      "type": "interaction",
+      "prompt": "十二年前的林秋正在等一个回答。你可以回应她，也可以问一个只有她可能知道的问题。",
+      "acceptsFreeText": true,
+      "onEnter": "SYS-A3-00-WAIT",
+      "onSubmit": {
+        "requestRuntime": "RT-03",
+        "selectDeterministicEvent": ["CHAIR_DIRECTION", "PAST_ECHO"],
+        "continueWaitingWith": "SYS-A3-00-WAIT"
+      }
+    },
+    {
+      "id": "RT-03",
+      "type": "runtimeVideo",
+      "promptId": "RT-03",
+      "durationSeconds": { "min": 8, "max": 8 },
+      "reference": "./runtime-references/RT-03-lin-qiu-from-PRE-A3-05.jpg",
+      "cameraConstraint": "第0秒直接保持PRE监视器关键帧；完整8秒固定后置构图，不再从林岚自拍翻转，避免H3重新猜测林秋形象。",
+      "audio": "native-h3-required",
+      "speakerConstraint": "只允许林秋一名说话者和一句短中文回应；林岚不再在H3视频中转述，避免双说话者导致乱码语音。",
+      "postProcess": ["mask-generated-subtitle-band", "crt-tape-audio-filter"],
+      "linQiuVoiceProfile": "匹配PRE-A3-03/05：约四十岁中国中年女性中低音，胸腔共鸣稳定，偏冷、略疲惫和干涩、语速偏慢、句尾自然下沉；必须像录像带经旧CRT单声道扬声器播放，包含窄频、高频衰减、轻微嘶声、饱和压缩及偶发音高漂移，禁止少女腔、甜美撒娇、干净录音棚声和机械TTS。",
+      "next": "PRE-A3-05"
+    },
+    {
+      "id": "PRE-A3-05",
+      "type": "video",
+      "src": "./act-03/PRE-A3-05.mp4",
+      "playback": "once",
+      "durationSeconds": 13.056,
+      "next": "selectedA3Event"
+    },
+    {
+      "id": "selectedA3Event",
+      "type": "deterministicRuntimeBranch",
+      "selection": {
+        "CHAIR_DIRECTION": "RTE-A3-02",
+        "PAST_ECHO": "RTE-A3-01"
+      },
+      "fallbackWhenNoPriorEcho": "CHAIR_DIRECTION",
+      "next": "INT-A3-01"
+    },
+    {
+      "id": "RTE-A3-01",
+      "type": "runtimeVideo",
+      "promptId": "RTE-A3-01",
+      "durationSeconds": { "min": 8, "max": 8 },
+      "reference": "./runtime-references/RT-03-lin-qiu-from-PRE-A3-05.jpg",
+      "input": "priorEchoPhrase",
+      "presentation": "旧弹幕只由客户端作为带用户名的恢复记录显示；林秋不得复述或执行它。H3视频中只有林秋一名说话者，只说“我听过这句话。”；林岚的确认反应由客户端记录卡显示。",
+      "postProcess": ["mask-generated-subtitle-band", "crt-tape-audio-filter"],
+      "next": "INT-A3-01"
+    },
+    {
+      "id": "RTE-A3-02",
+      "type": "runtimeVideo",
+      "promptId": "RTE-A3-02",
+      "durationSeconds": { "min": 10, "max": 10 },
+      "reference": "./runtime-references/RTE-A3-from-PRE-A3-05.jpg",
+      "compositionAnchor": "./runtime-references/RTE-A3-chair-anchor.jpg",
+      "combines": ["RTE-A3-02B", "RTE-A3-02C"],
+      "next": "INT-A3-01"
+    },
+    {
+      "id": "INT-A3-01",
+      "type": "crossAppPuzzle",
+      "apps": ["LIVE", "VEIL", "ZERO_CHANNEL_REPLAY", "PHONE", "EVIDENCE"],
+      "searchMatch": ["晚安青河", "林秋+青河", "林秋+电视台", "青河电视台+节目表|主持人|旧节目"],
+      "programPage": {
+        "title": "青河电视台节目资料存档（2013—2014）",
+        "extension": "0313"
+      },
+      "voicemail": {
+        "src": "./act-03/CALL-A3-01.m4a",
+        "evidence": "TAPE_TIMECODE_2103"
+      },
+      "onSuccess": "SYS-A3-02",
+      "onSkip": "SYS-A3-03"
+    },
+    {
+      "id": "SYS-A3-02",
+      "type": "systemVideo",
+      "src": "./act-03/SYS-A3-02.mp4",
+      "playback": "once",
+      "writesState": ["TAPE_ABSENT_2103"],
+      "next": "INT-A3-02"
+    },
+    {
+      "id": "INT-A3-02",
+      "type": "archiveChoice",
+      "page": "WEB-A3-02",
+      "writesStateWhenRead": ["ZERO_CHANNEL_TRANSFER_RULE"],
+      "next": "PRE-A3-06-ASSET-BOUNDARY"
+    },
+    {
+      "id": "SYS-A3-03",
+      "type": "systemVideo",
+      "src": "./act-03/SYS-A3-03.mp4",
+      "playback": "once",
+      "writesState": ["MISSED_A3_ARCHIVE"],
+      "next": "PRE-A3-06-ASSET-BOUNDARY"
+    },
+    {
+      "id": "PRE-A3-06-ASSET-BOUNDARY",
+      "type": "productionBoundary",
+      "label": "第三幕调查完成，等待PRE-A3-06返回控制室视频"
+    },
+    {
+      "id": "SYS-A2-EARLY-LEAVE",
+      "type": "ending",
+      "label": "离开后的空频道"
+    }
+  ]
+}

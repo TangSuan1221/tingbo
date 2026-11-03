@@ -1,0 +1,20 @@
+请你作为本地安装助手，在当前解压后的《停播之后：零号频道》项目目录中完成以下操作。不要改动游戏剧情或源码，也不要把接口密钥写入前端代码、日志、回复或任何可提交文件。
+
+1. 检查本机是否安装 Node.js 20 或更高版本；若未安装，指导我从 Node.js 官网安装 LTS 版本，安装完成后继续。
+2. 在项目目录运行 `npm install`。
+3. 如果项目根目录不存在 `.env.local`，根据 `.env.example` 创建它。先单独询问我提供兼容当前 H3 代理的接口串码，然后只把串码写入本机 `.env.local` 的 `LITELLM_KEY`，不要在回复中复述串码。文件内容应为：
+
+   LITELLM_KEY=我提供的接口串码
+   H3_BASE_URL=https://llm-proxy.forgeax.com
+   H3_MODEL=minimax-h3-max
+   H3_DURATION=5
+   H3_SIZE=480p
+   H3_REFERENCE_MODE=multipart
+   PORT=8797
+
+4. 确认 `.env.local` 已被 `.gitignore` 排除，禁止提交、上传或发送该文件。
+5. 运行 `npm run build`；构建成功后运行 `npm start`，保持服务持续运行。
+6. 访问 `http://127.0.0.1:8797/api/health`，确认返回 `ok: true` 且 `h3Configured: true`。
+7. 在本机浏览器打开 `http://127.0.0.1:8797/`，让我开始游戏。
+8. 如果端口 8797 被占用，先找出占用程序并征求我同意后关闭，或把 `.env.local` 中的 `PORT` 改为其他空闲端口，再使用相同端口打开游戏。
+9. 若 H3 请求失败，只报告 HTTP 状态和经过脱敏的错误信息；绝不显示完整密钥。注意：普通 MiniMax 官方 API Key 未必兼容当前 ForgeAX H3 代理，必须使用与 `H3_BASE_URL` 匹配的接口串码。

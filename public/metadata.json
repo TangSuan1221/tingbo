@@ -1,0 +1,39 @@
+{
+  "name": "停播之后",
+  "description": "《停播之后》是一款都市民俗悬疑互动影游。你将陪伴主播深入废弃电视台，通过弹幕、手机调查与关键抉择揭开零号频道的真相，并决定谁能离开这场直播。",
+  "gameplayType": "互动叙事",
+  "nameCandidates": [
+    {
+      "name": "停播之后",
+      "formula": "[事件]+[神秘词]",
+      "rationale": "对应直播结束后的核心悬念，并延续项目现有名称。"
+    },
+    {
+      "name": "零号频道",
+      "formula": "[物品]+[神秘词]",
+      "rationale": "以贯穿剧情的异常频道作为明确记忆点。"
+    },
+    {
+      "name": "母带余声",
+      "formula": "[物品]+[神秘词]",
+      "rationale": "突出母带、旧声音与未结束的异常。"
+    },
+    {
+      "name": "夜班信号",
+      "formula": "[地点/事件]+[神秘词]",
+      "rationale": "概括深夜电视台直播与异常信号的处境。"
+    },
+    {
+      "name": "最后直播",
+      "formula": "[时间]+[物品]",
+      "rationale": "强调玩家陪伴主播完成最后一次直播的目标。"
+    }
+  ],
+  "tags": [
+    "gameplay_narrative"
+  ],
+  "nameSource": "llm",
+  "descriptionSource": "llm",
+  "tagsSource": "llm",
+  "generatedAt": "2026-10-12T06:39:00.000Z"
+}

@@ -1,0 +1,191 @@
+/* 序章终端：沿用封面电视机外框、桶形畸变与 LCD 磷光字，只负责文字与开关机过渡 */
+
+.it {
+  --it-mono: "Consolas", "Lucida Console", "Courier New", "Qinghe Song", monospace;
+  cursor: default;
+}
+
+.it-content {
+  position: absolute;
+  inset: 0;
+  animation: it-on 560ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.it.is-leaving .it-content {
+  animation: it-off var(--it-leave, 640ms) cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
+/* 屏幕中心微弱的磷光底辉，让黑屏有“通电”的感觉 */
+.it-glow {
+  background:
+    radial-gradient(ellipse 62% 54% at 46% 42%, rgba(var(--mm-lcd-rgb), 0.07), transparent 72%),
+    #0a0d0b;
+}
+
+/* 与封面 .mm-scene-bend 相同：比屏幕略大，畸变后边缘向内收拢 */
+.it-bend {
+  position: absolute;
+  inset: -3.5cqh -2cqw;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.it-text {
+  position: absolute;
+  top: calc(3.5cqh + 13cqh);
+  right: calc(2cqw + 9cqw);
+  left: calc(2cqw + 9cqw);
+  /* 预留外发光空间，避免被遮罩裁掉 */
+  padding: 0.6em;
+  margin: -0.6em;
+  color: var(--mm-lcd-hot);
+  -webkit-mask-image: var(--mm-scanline);
+  mask-image: var(--mm-scanline);
+  animation: mm-title-flicker 7s steps(1, end) infinite;
+}
+
+.it-line {
+  margin: 0;
+  min-height: 1.5em;
+  white-space: pre-wrap;
+}
+
+.it-line.has-gap {
+  margin-top: 1.5em;
+}
+
+.it-sys,
+.it-rule,
+.it-prompt {
+  color: rgba(var(--mm-lcd-rgb), 0.74);
+  font-family: var(--it-mono);
+  font-size: clamp(11px, 1.12cqw, 20px);
+  font-weight: 600;
+  line-height: 1.75;
+  letter-spacing: 0.18em;
+  text-shadow:
+    0 0 0.12em rgba(var(--mm-lcd-rgb), 0.5),
+    0 0 0.6em rgba(var(--mm-lcd-rgb), 0.3);
+}
+
+.it-rule {
+  overflow: hidden;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.it-body {
+  font-family: var(--mm-song);
+  font-size: clamp(18px, 2.1cqw, 40px);
+  font-weight: 600;
+  line-height: 1.85;
+  letter-spacing: 0.14em;
+  text-shadow:
+    0 0 0.1em rgba(205, 226, 186, 0.72),
+    0 0 0.5em rgba(205, 226, 186, 0.42);
+}
+
+.it-body + .it-body {
+  margin-top: 0.35em;
+}
+
+.it-prompt {
+  color: rgba(var(--mm-lcd-rgb), 0.86);
+}
+
+/* 下划线光标：打字时常亮，打完后闪烁 */
+.it-caret {
+  display: inline-block;
+  width: 0.62em;
+  height: 0.12em;
+  margin-left: 0.12em;
+  vertical-align: -0.08em;
+  background: currentColor;
+  box-shadow: 0 0 0.4em rgba(var(--mm-lcd-rgb), 0.8);
+}
+
+.it.is-hold .it-caret,
+.it.is-leaving .it-caret {
+  animation: it-caret 1s steps(1, end) infinite;
+}
+
+.it-hint {
+  position: absolute;
+  z-index: 3;
+  right: var(--mm-gutter);
+  bottom: 5.4cqh;
+  color: var(--mm-khaki);
+  font-size: clamp(10px, 0.8cqw, 14px);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  pointer-events: none;
+  animation: mm-fade 900ms ease 1400ms both;
+}
+
+.it-hint span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.it.is-leaving .it-hint {
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.it-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* 通电：一条亮线向上下展开，亮度回落 */
+@keyframes it-on {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.006);
+    filter: brightness(3);
+  }
+  35% {
+    opacity: 1;
+    transform: scaleY(0.006);
+    filter: brightness(3);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* 关机：画面压成一条亮线，再向中心收成一点 */
+@keyframes it-off {
+  0% {
+    transform: none;
+    filter: none;
+  }
+  55% {
+    transform: scaleY(0.006);
+    filter: brightness(3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0, 0.006);
+    filter: brightness(3);
+  }
+}
+
+@keyframes it-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "local_project_id": "662419e8-2a6b-4ff6-ae36-785fa1e701c9",
+  "game_id": "01a19bfd-91e1-7103-bb2b-4b1d99bd3acf",
+  "template": null,
+  "build": {
+    "package_manager": "pnpm@10.33.4",
+    "script": "build",
+    "output_dir": "dist",
+    "entry": "index.html"
+  },
+  "resource": "https://dev.zaohua.top/mcp-servers/vag-web/mcp",
+  "support_pc": true,
+  "support_mobile": false
+}

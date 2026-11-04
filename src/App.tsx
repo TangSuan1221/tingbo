@@ -603,12 +603,16 @@ export default function App() {
   const swipeOffsetRef = useRef(0);
   const touchHitStartRef = useRef<{ x: number; y: number } | null>(null);
   const rt01WaitingVideoFinishedRef = useRef(false);
+  const runtimeEpochRef = useRef(0);
+  const skipStoryRef = useRef<() => string>(() => "请先进入直播。");
   const nameCheckRef = useRef(false);
   const textCheckRef = useRef(false);
   const [started, setStarted] = useState(false);
   const [prologuePage, setProloguePage] = useState<ProloguePage>("cover");
   const [prologueSeen, setPrologueSeen] = useState({ notice: false, photo: false });
   const [gmToolsOpen, setGmToolsOpen] = useState(false);
+  const [gmCommandOpen, setGmCommandOpen] = useState(false);
+  const [gmCommandNotice, setGmCommandNotice] = useState("");
   const [usernameInput, setUsernameInput] = useState("");
   const [usernameChecking, setUsernameChecking] = useState(false);
   const [usernameWarning, setUsernameWarning] = useState("");
@@ -1125,6 +1129,17 @@ export default function App() {
   }, [step?.id]);
 
   useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "F10" || event.repeat) return;
+      event.preventDefault();
+      setGmCommandNotice("");
+      setGmCommandOpen((open) => !open);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
     if (!step) return;
     setHintStepId(null);
     setInputWarning("");
@@ -1511,15 +1526,18 @@ export default function App() {
   }
 
   async function requestRuntime(runtimeRequest: RuntimeRequest) {
+    const epoch = runtimeEpochRef.current;
     runtimeRequest = { ...runtimeRequest, history: dialogueHistoryRef.current[runtimeRequest.promptId] || [] };
     activeDialogueRef.current = runtimeRequest;
     setPendingRuntime(runtimeRequest);
     try {
       if (useZaohuaVideoBridge()) {
         const completed = await generateRuntimeVideo(runtimeRequest, (update) => {
+          if (runtimeEpochRef.current !== epoch) return;
           setJob(asRuntimeJob(update, runtimeRequest.promptId));
         });
-        completeRuntimeJob(asRuntimeJob(completed, runtimeRequest.promptId));
+        if (runtimeEpochRef.current !== epoch) return;
+        completeRuntimeJob(asRuntimeJob(completed, runtimeRequest.promptId), epoch);
         return;
       }
       const response = await fetch(runtimeEndpoint("/api/videos"), {
@@ -1528,10 +1546,12 @@ export default function App() {
         body: JSON.stringify(runtimeRequest)
       });
       const data = await response.json();
+      if (runtimeEpochRef.current !== epoch) return;
       if (!response.ok) throw new Error(data.error || "无法开始Runtime生成。");
       setJob(data);
-      pollJob(data.id);
+      pollJob(data.id, epoch);
     } catch (error) {
+      if (runtimeEpochRef.current !== epoch) return;
       setJob((current) => ({
         id: current?.id || "local-error",
         promptId: runtimeRequest.promptId,
@@ -1549,7 +1569,8 @@ export default function App() {
     return { ...update, promptId };
   }
 
-  function completeRuntimeJob(nextJob: RuntimeJob) {
+  function completeRuntimeJob(nextJob: RuntimeJob, epoch = runtimeEpochRef.current) {
+    if (runtimeEpochRef.current !== epoch) return;
     const active = activeDialogueRef.current;
     if (nextJob.dialogueSource === "ai" && active?.promptId === nextJob.promptId &&
         !rememberedDialogueJobsRef.current.has(nextJob.id)) {
@@ -1583,21 +1604,24 @@ export default function App() {
     if (resolvedJob.videoUrl) setRuntimeUrl(resolvedJob.videoUrl);
   }
 
-  function pollJob(id: string) {
+  function pollJob(id: string, epoch: number) {
     const poll = async () => {
+      if (runtimeEpochRef.current !== epoch) return;
       try {
         const response = await fetch(runtimeEndpoint(`/api/videos/${encodeURIComponent(id)}`));
         const nextJob: RuntimeJob = await response.json();
+        if (runtimeEpochRef.current !== epoch) return;
         if (!response.ok) throw new Error((nextJob as unknown as { error?: string }).error || "任务查询失败。");
         setJob(nextJob);
 
         if (nextJob.status === "completed" && nextJob.videoUrl) {
-          completeRuntimeJob(nextJob);
+          completeRuntimeJob(nextJob, epoch);
           return;
         }
         if (nextJob.status === "failed") return;
         window.setTimeout(poll, 2500);
       } catch (error) {
+        if (runtimeEpochRef.current !== epoch) return;
         setJob((current) => ({
           id,
           promptId: current?.promptId || "RT-00",
@@ -1948,6 +1972,7 @@ export default function App() {
   }
 
   function restart() {
+    runtimeEpochRef.current += 1;
     dialogueHistoryRef.current = {};
     activeDialogueRef.current = null;
     rememberedDialogueJobsRef.current.clear();
@@ -1957,6 +1982,8 @@ export default function App() {
     setProloguePage("cover");
     setPrologueSeen({ notice: false, photo: false });
     setGmToolsOpen(false);
+    setGmCommandOpen(false);
+    setGmCommandNotice("");
     setStepIndex(0);
     setRuntimeUrl(null);
     setRuntimeReply("");
@@ -2373,6 +2400,83 @@ export default function App() {
       }
     ].slice(-10));
     showSocialToast(`${username || "你"} 送出了 ${gift}`);
+  }
+
+  function skipCurrentStory() {
+    if (!started) return "请先进入直播。";
+    if (complete) return "剧情已经结束。";
+
+    runtimeEpochRef.current += 1;
+    activeDialogueRef.current = null;
+    rt01WaitingVideoFinishedRef.current = false;
+    videoRef.current?.pause();
+    setJob(null);
+    setRuntimeUrl(null);
+    setRuntimeReply("");
+    setPlayingPromptId(null);
+    setPendingRuntime(null);
+    setClarifying(false);
+    setInput("");
+    setInputWarning("");
+    setPhoneView("live");
+
+    const current = steps[stepIndex];
+    if (!current) return "没有可跳过的剧情。";
+
+    if (current.id === "INT-A5-00") {
+      if (!endingIntent || endingIntent === "CLARIFY") {
+        setEndingIntent("SHUT_DOWN");
+        setFinalDecisionMessage("彻底停播，切断总电源并毁掉母带。");
+      }
+      setComplete(true);
+      showSocialToast("已跳过当前剧情");
+      return "已跳过当前剧情。";
+    }
+
+    if (current.id === "INT-A1-01") {
+      if (routeIntent === "LEAVE") {
+        setComplete(true);
+        showSocialToast("已跳过当前剧情");
+        return "已跳过当前剧情。";
+      }
+      if (!routeMessage) setRouteMessage("先去控制室。");
+      if (!routeIntent || routeIntent === "OTHER") setRouteIntent("CONTROL_ROOM");
+      setStepIndex(act2StartIndex);
+      showSocialToast("已跳过当前剧情");
+      return "已跳过当前剧情。";
+    }
+
+    if (current.id === "INT-A1-00" && !firstMessage) {
+      setFirstMessage("快看你身后的电视！");
+    }
+    if ((current.id === "INT-A3-00" || current.id === "A3-DYNAMIC-EVENT") && !selectedA3Event) {
+      setSelectedA3Event("CHAIR_DIRECTION");
+    }
+    if (current.id === "INT-A3-00" && !a3Message) {
+      setA3Message("问她现在是否安全。");
+    }
+    if (current.id === "INT-A3-02") {
+      setStepIndex(act4StartIndex);
+      showSocialToast("已跳过当前剧情");
+      return "已跳过当前剧情。";
+    }
+    if (stepIndex >= steps.length - 1) {
+      setComplete(true);
+      showSocialToast("已跳过当前剧情");
+      return "已跳过当前剧情。";
+    }
+
+    setStepIndex((index) => index + 1);
+    showSocialToast("已跳过当前剧情");
+    return "已跳过当前剧情。";
+  }
+
+  skipStoryRef.current = skipCurrentStory;
+
+  function runSkipStory() {
+    const notice = skipStoryRef.current();
+    setGmCommandNotice(notice);
+    if (notice.startsWith("已跳过")) setGmCommandOpen(false);
   }
 
   return (
@@ -4057,6 +4161,35 @@ export default function App() {
         )}
         </section>
       </div>
+      {started && !complete && (
+        <button type="button" className="gm-skip-story" onClick={runSkipStory}>
+          跳过剧情
+        </button>
+      )}
+      {gmCommandOpen && (
+        <div
+          className="gm-command"
+          role="dialog"
+          aria-modal="true"
+          aria-label="GM指令"
+          onKeyDown={(event) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            setGmCommandOpen(false);
+          }}
+        >
+          <p>GM指令</p>
+          <div className="gm-command-actions">
+            <button type="button" onClick={runSkipStory}>
+              跳过剧情
+            </button>
+            <button type="button" onClick={() => setGmCommandOpen(false)}>
+              关闭
+            </button>
+          </div>
+          <small>{gmCommandNotice || "直接点左上角「跳过剧情」，或在这里点一次。不用再输入指令。"}</small>
+        </div>
+      )}
       <aside className="portrait-guard" aria-label="请横屏游玩">
         <span className="portrait-device" aria-hidden="true">
           <i />

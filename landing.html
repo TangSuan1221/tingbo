@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#080907" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" />
+    <title>停播之后：零号频道</title>
+    <style>
+      :root {
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-right: env(safe-area-inset-right, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-left: env(safe-area-inset-left, 0px);
+        --host-top: max(92px, var(--safe-top));
+        --host-bottom: max(128px, var(--safe-bottom));
+        --ink: #e8e1cf;
+        --muted: #aaa793;
+        --signal: #b8342f;
+        --signal-bright: #e14a3d;
+        --phosphor: #9eaf8a;
+        --bg: #080907;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        touch-action: manipulation;
+        overscroll-behavior: none;
+      }
+
+      html.is-paused *, html.is-paused *::before, html.is-paused *::after {
+        animation-play-state: paused !important;
+      }
+
+      .stage {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        background:
+          radial-gradient(ellipse at 50% 42%, rgba(158, 175, 138, 0.16), transparent 46%),
+          linear-gradient(#10110e, #080907 72%);
+      }
+
+      .stage::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(to bottom, rgba(232, 225, 207, 0.045) 0 1px, transparent 1px 4px);
+        animation: scan 7s linear infinite;
+        pointer-events: none;
+      }
+
+      .vignette {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at center, transparent 42%, rgba(0, 0, 0, 0.72) 100%);
+        pointer-events: none;
+      }
+
+      .safe {
+        position: absolute;
+        top: var(--host-top);
+        right: max(12px, var(--safe-right));
+        bottom: var(--host-bottom);
+        left: max(12px, var(--safe-left));
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .identity {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        color: var(--phosphor);
+        font-size: clamp(11px, 3.1vw, 13px);
+        letter-spacing: 0.12em;
+      }
+
+      .live {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .lamp {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--signal-bright);
+        box-shadow: 0 0 8px var(--signal-bright);
+        animation: blink 1.6s steps(2, end) infinite;
+      }
+
+      .slice {
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 45%;
+        margin-top: 10px;
+        overflow: hidden;
+      }
+
+      .crt {
+        position: absolute;
+        left: 50%;
+        top: 46%;
+        width: min(78%, 280px);
+        aspect-ratio: 4 / 5;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(224, 218, 193, 0.28);
+        border-radius: 18px;
+        background: #12140f;
+        box-shadow: 0 0 0 8px rgba(8, 9, 7, 0.65), 0 18px 40px rgba(0, 0, 0, 0.45);
+        overflow: hidden;
+      }
+
+      .face {
+        position: absolute;
+        left: 50%;
+        top: 54%;
+        width: 58%;
+        height: 62%;
+        transform: translate(-50%, -50%);
+        border-radius: 46% 46% 42% 42%;
+        background: #cbbfa6;
+      }
+
+      .bangs {
+        position: absolute;
+        left: 8%;
+        right: 8%;
+        top: -8%;
+        height: 42%;
+        background: #17140f;
+        border-radius: 40% 40% 46% 46%;
+      }
+
+      .glasses {
+        position: absolute;
+        left: 12%;
+        right: 12%;
+        top: 38%;
+        height: 18%;
+        border: 2px solid #8d8372;
+        border-radius: 40%;
+      }
+
+      .glasses::before {
+        content: "";
+        position: absolute;
+        left: 48%;
+        top: 42%;
+        width: 8%;
+        height: 2px;
+        background: #8d8372;
+      }
+
+      .mouth {
+        position: absolute;
+        left: 38%;
+        right: 38%;
+        bottom: 18%;
+        height: 2px;
+        background: #8a624c;
+      }
+
+      .danmaku {
+        position: absolute;
+        left: 8%;
+        right: 8%;
+        bottom: 8%;
+        color: var(--ink);
+        font-size: clamp(11px, 3vw, 13px);
+        line-height: 1.4;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+        animation: rise 6.5s ease-in-out infinite;
+      }
+
+      .title-block {
+        padding-top: 8px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(18px, 5vw, 26px);
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        line-height: 1.15;
+      }
+
+      .hook {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: clamp(12px, 3.4vw, 14px);
+      }
+
+      @keyframes scan {
+        from { transform: translateY(0); }
+        to { transform: translateY(4px); }
+      }
+
+      @keyframes blink {
+        50% { opacity: 0.35; }
+      }
+
+      @keyframes rise {
+        0% { opacity: 0; transform: translateY(8px); }
+        18%, 78% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-6px); }
+      }
+
+      @media (max-height: 600px) {
+        .identity { display: none; }
+        .slice { margin-top: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- landing-diversity:
+      archetype: L6
+      title.placement: bottom-overlay
+      slice.anchor: upper-spotlight
+      slice.motion_axis: static-pulse
+      bg.id: BG-spotlight
+      hud.zones: TL
+      hook.combo: H-G+H-C+H-A
+    -->
+    <div class="stage">
+      <div class="vignette"></div>
+      <div class="safe">
+        <div class="identity">
+          <span>午夜停播</span>
+          <span class="live"><i class="lamp"></i>零号频道</span>
+        </div>
+        <div class="slice" aria-hidden="true">
+          <div class="crt">
+            <div class="face">
+              <div class="bangs"></div>
+              <div class="glasses"></div>
+              <div class="mouth"></div>
+            </div>
+            <div class="danmaku">快看你身后的电视</div>
+          </div>
+        </div>
+        <div class="title-block">
+          <h1>停播之后：零号频道</h1>
+          <p class="hook">你是最后的观众</p>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        var root = document.documentElement;
+        var visible = document.visibilityState !== "hidden";
+        var intersecting = true;
+        function setCoverPlaying(active) {
+          root.classList.toggle("is-paused", !active);
+        }
+        function sync() {
+          setCoverPlaying(visible && intersecting);
+        }
+        document.addEventListener("visibilitychange", function () {
+          visible = document.visibilityState !== "hidden";
+          sync();
+        });
+        window.addEventListener("pagehide", function () {
+          visible = false;
+          sync();
+        });
+        if ("IntersectionObserver" in window) {
+          var observer = new IntersectionObserver(function (entries) {
+            intersecting = entries.some(function (entry) { return entry.isIntersecting && entry.intersectionRatio > 0; });
+            sync();
+          });
+          observer.observe(root);
+        }
+        sync();
+      })();
+    </script>
+  </body>
+</html>

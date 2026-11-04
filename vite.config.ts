@@ -95,6 +95,7 @@ export default defineConfig({
           recursive: true,
           force: true
         });
+        await cp(path.join(root, "landing.html"), path.join(root, "dist", "landing.html"));
       }
     }
   ],

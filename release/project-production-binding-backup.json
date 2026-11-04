@@ -11,5 +11,5 @@
   },
   "resource": "https://zaohua.qq.com/mcp-servers/vag-web/mcp",
   "support_pc": true,
-  "support_mobile": false
+  "support_mobile": true
 }

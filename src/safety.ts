@@ -84,10 +84,17 @@ function askHost(scene: number, text: string) {
     };
 
     const onMessage = (event: MessageEvent) => {
-      if (event.source !== window.parent) return;
-      const data = event.data as { type?: string; payload?: SafetyResponse } | null;
-      if (data?.type !== "VAG_SAFETY_CHECK_RESPONSE") return;
-      accept(data.payload);
+      if (event.source && event.source !== window.parent && event.source !== window) return;
+      try {
+        const data = (typeof event.data === "string" ? JSON.parse(event.data) : event.data) as {
+          type?: string;
+          payload?: SafetyResponse;
+        } | null;
+        if (data?.type !== "VAG_SAFETY_CHECK_RESPONSE") return;
+        accept(data.payload);
+      } catch {
+        // 忽略非 JSON 消息
+      }
     };
 
     hostWindow.__vagReceiveFromHost = (body: unknown) => {

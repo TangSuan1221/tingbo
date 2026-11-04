@@ -12,14 +12,22 @@ test('retrieval isolates nodes and accepts only registered evidence', () => {
   assert.equal(JSON.stringify(first).includes('21:03未发送留言'), false);
   assert.equal(retrieveKnowledge('RT-02', ['BREAKER_MAP']).evidence.length, 1);
 });
-test('rejects invalid intent, contradictory transition and oversized speech', () => {
+test('repairs mismatched advance, unknown intent and oversized speech instead of blocking', () => {
   const k = retrieveKnowledge('RT-06');
-  for (const value of [
-    { reply: '好', intent: 'TELEPORT', advance: true },
-    { reply: '好', intent: 'STAY', advance: true },
-    { reply: '好', intent: 'PLAY_TAPE', advance: false },
-    { reply: '长'.repeat(46), intent: 'STAY', advance: false }
-  ]) assert.throws(() => validateDecision(value, k));
+  const unknown = validateDecision({ reply: '好', intent: 'TELEPORT', advance: true }, k);
+  assert.equal(unknown.intent, 'STAY');
+  assert.equal(unknown.advance, false);
+  const stayed = validateDecision({ reply: '好', intent: 'STAY', advance: true }, k);
+  assert.equal(stayed.intent, 'STAY');
+  assert.equal(stayed.advance, false);
+  const chosen = validateDecision({ reply: '好', intent: 'PLAY_TAPE', advance: false }, k);
+  assert.equal(chosen.intent, 'PLAY_TAPE');
+  assert.equal(chosen.advance, true);
+  const stringFlag = validateDecision({ reply: '好', intent: 'PLAY_TAPE', advance: 'false' }, k);
+  assert.equal(stringFlag.advance, true);
+  const trimmed = validateDecision({ reply: '长'.repeat(46), intent: 'STAY', advance: false }, k);
+  assert.equal(trimmed.reply.length, 45);
+  assert.throws(() => validateDecision({ reply: '   ', intent: 'STAY', advance: false }, k));
 });
 test('model receives bounded dialogue history and node knowledge, not a fixed reply', async () => {
   const result = await reasonDialogue({ promptId: 'RT-00', message: '我陪着你', history: [
@@ -85,8 +93,49 @@ test('host messages response parses generated speech and enforces the same actio
   const { knowledge, messages, system } = buildDialogueMessages(input);
   assert.equal(messages.at(-1).content, input.message);
   assert.match(system, /每次用新写/);
+  assert.equal(system.includes('先别回头，听我说'), false);
   const decision = parseDialogueResponse({ content: [{ type: 'text', text: JSON.stringify({reply:'那就陪我说两句，别突然断线。', intent:'STAY', advance:false}) }] }, input, knowledge);
   assert.equal(decision.advance, false);
   assert.match(decision.reply, /陪我/);
   assert.throws(() => parseDialogueResponse({ content: [{type:'text',text:'not json'}]}, input, knowledge));
+});
+
+test('every on-screen suggestion locks to its story action', async () => {
+  const { presetIntent } = await import('./dialogue-core.mjs');
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const expected = {
+    'RT-00': { '快看你身后的电视！': 'DIRECT_ALERT', '先别回头，听我说。': 'STAY' },
+    'RT-01': { '先去控制室。': 'CONTROL_ROOM', '去演播厅看看。': 'STUDIO', '再检查一下大厅里的电视。': 'LOBBY', '现在离开这里。': 'LEAVE' },
+    'RT-02': { '对比十三号屏幕和旁边的屏幕。': 'COMPARE_FEED', '先关掉控制台电源。': 'CUT_POWER', '先别动，等屏幕里的她自己行动。': 'WAIT_AND_WATCH', '故意不要照屏幕里的动作做。': 'DISOBEY' },
+    'RT-02B': { '我从没来过这里。': 'DENY', '也许我们已经经历过不止一次。': 'LOOP_THEORY', '别再查了，现在离开。': 'LEAVE_WARNING' },
+    'RT-03': { '问她现在是否安全。': 'SAFETY', '问她为什么认识屏幕外的人。': 'PRIVATE_QUESTION', '提醒她不要碰零号母带。': 'LEAVE_WARNING' },
+    'RT-05': { '相信未来的你。': 'TRUST_FUTURE', '相信屏幕里的妈妈。': 'TRUST_SCREEN', '先别相信任何人，只按证据行动。': 'TRUST_EVIDENCE', '现在还不能判断，继续查。': 'UNDECIDED' },
+    'RT-06': { '播放母带。': 'PLAY_TAPE', '彻底停播，切断总电源并毁掉母带。': 'SHUT_DOWN' }
+  };
+  for (const [promptId, lines] of Object.entries(expected)) {
+    const knowledge = retrieveKnowledge(promptId);
+    for (const [line, intent] of Object.entries(lines)) {
+      assert.equal(app.includes(line), true, line);
+      assert.equal(presetIntent(knowledge, line), intent, `${promptId} ${line}`);
+    }
+  }
+});
+
+test('preset lines keep their action when the model returns advance false', async () => {
+  const { buildDialogueMessages, parseDialogueResponse } = await import('./dialogue-core.mjs');
+  const input = { promptId: 'RT-03', message: '问她为什么认识屏幕外的人。', history: [] };
+  const { knowledge } = buildDialogueMessages(input);
+  const reply = '这个问题，我不能在镜头前回答。';
+  const decision = parseDialogueResponse({ choices: [{ message: { content: JSON.stringify({
+    reply, intent: 'PRIVATE_QUESTION', advance: false
+  }) } }] }, input, knowledge);
+  assert.equal(decision.intent, 'PRIVATE_QUESTION');
+  assert.equal(decision.advance, true);
+  assert.equal(decision.reply, reply);
+
+  const stay = parseDialogueResponse({ content: [{ type: 'text', text: '好的。{"reply":"你先把话说完。","intent":"DIRECT_ALERT","advance":true}' }] },
+    { promptId: 'RT-00', message: '先别回头，听我说。' }, retrieveKnowledge('RT-00'));
+  assert.equal(stay.intent, 'STAY');
+  assert.equal(stay.advance, false);
+  assert.equal(stay.reply, '你先把话说完。');
 });

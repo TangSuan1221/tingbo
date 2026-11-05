@@ -103,6 +103,8 @@
 /* ---------- 顶栏：只留返回键与来源；按键与来源样式与帖子页一致 ---------- */
 
 .ab-page-forum .ab-top {
+  position: relative;
+  z-index: 3;
   margin-top: 1.7em;
   padding: 0 0.2em;
   border-bottom: 0;

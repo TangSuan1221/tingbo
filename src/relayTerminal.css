@@ -335,6 +335,37 @@
   letter-spacing: 0.04em;
 }
 
+.interaction-dock .leave-live-control {
+  margin-top: 2px;
+  padding: 7px 12px;
+  border: 1px solid rgba(190, 198, 175, 0.45);
+  color: var(--rt-bone);
+  background: rgba(5, 6, 5, 0.35);
+  font-family: var(--rt-sans);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+
+.interaction-dock .leave-live-control svg {
+  width: 16px;
+  height: 16px;
+}
+
+.game-viewport[data-compact-readability="true"] .interaction-dock .leave-live-control {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  min-height: calc(44px / var(--game-scale));
+  margin-top: calc(8px / var(--game-scale));
+  padding: 0 calc(12px / var(--game-scale));
+  font-size: calc(15px / var(--game-scale));
+}
+
+.game-viewport[data-compact-readability="true"] .interaction-dock .leave-live-control svg {
+  width: calc(18px / var(--game-scale));
+  height: calc(18px / var(--game-scale));
+}
+
 .interaction-dock .attached-evidence svg {
   width: 13px;
   height: 13px;
@@ -673,12 +704,136 @@
   bottom: 34px;
 }
 
+.game-viewport[data-compact-readability="true"] .broadcast-frame:has(.ios-exit-gesture) .interaction-dock {
+  bottom: calc(72px / var(--game-scale));
+}
+
+.game-viewport[data-compact-readability="true"] .broadcast-frame:has(.interaction-dock):has(.ios-exit-gesture) .chat-stream {
+  bottom: calc(210px / var(--game-scale));
+}
+
 .broadcast-frame:has(.interaction-dock) .ios-exit-gesture {
   padding-top: 12px;
 }
 
 .broadcast-frame:has(.interaction-dock):has(.ios-exit-gesture) .chat-stream {
   bottom: clamp(160px, 26cqh, 224px);
+}
+
+/* 横屏手机：关掉字形溢出，提示和输入分成上下两行，避免互相盖住。 */
+.game-viewport[data-compact-readability="true"] .interaction-dock,
+.game-viewport[data-compact-readability="true"] .interaction-dock * {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.game-viewport[data-compact-readability="true"] .interaction-dock {
+  --rt-read: calc(16px * var(--compact-text-factor, 1));
+
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  row-gap: 12px;
+  width: calc(100% - 36px);
+  min-height: 0;
+}
+
+.game-viewport[data-compact-readability="true"] .relay-bar {
+  height: auto;
+  min-height: 36px;
+  white-space: normal;
+}
+
+.game-viewport[data-compact-readability="true"] .relay-bar-tag {
+  display: none;
+}
+
+.game-viewport[data-compact-readability="true"] .relay-bar-tools {
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.game-viewport[data-compact-readability="true"] .relay-hints {
+  position: static;
+  top: auto;
+  right: auto;
+  left: auto;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  overflow: hidden;
+  transform: none;
+}
+
+.game-viewport[data-compact-readability="true"] .interaction-dock .suggestion-row {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow-x: auto;
+}
+
+.game-viewport[data-compact-readability="true"] .interaction-dock .suggestion-row button {
+  height: auto;
+  min-height: calc(40px / var(--game-scale));
+  padding: 0 calc(12px / var(--game-scale));
+  font-size: var(--rt-read);
+  line-height: 1.2;
+}
+
+.game-viewport[data-compact-readability="true"] .interaction-dock .hint-toggle,
+.game-viewport[data-compact-readability="true"] .relay-speaker,
+.game-viewport[data-compact-readability="true"] .interaction-copy p,
+.game-viewport[data-compact-readability="true"] .interaction-dock input,
+.game-viewport[data-compact-readability="true"] .interaction-dock form button {
+  font-size: var(--rt-read);
+}
+
+.game-viewport[data-compact-readability="true"] .relay-speaker {
+  align-self: start;
+  padding-top: 2px;
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.game-viewport[data-compact-readability="true"] .interaction-copy {
+  min-height: 0;
+  align-self: start;
+  padding: 0 0 0 14px;
+  border-left: 0;
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.game-viewport[data-compact-readability="true"] .interaction-copy p {
+  max-width: none;
+}
+
+.game-viewport[data-compact-readability="true"] .relay-console {
+  gap: 8px;
+  padding-left: 0;
+  border-left: 0;
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+
+.game-viewport[data-compact-readability="true"] .interaction-dock form {
+  height: calc(46px / var(--game-scale));
+}
+
+.game-viewport[data-compact-readability="true"] .interaction-dock form button {
+  width: calc(92px / var(--game-scale));
+}
+
+.game-viewport[data-compact-readability="true"] .broadcast-frame:has(.interaction-dock) .chat-stream {
+  bottom: 390px;
+  max-height: min(30cqh, 280px);
+}
+
+.game-viewport[data-compact-readability="true"] .broadcast-frame:has(.interaction-dock):has(.ios-exit-gesture) .chat-stream {
+  bottom: calc(390px + 72px / var(--game-scale));
 }
 
 /* ---------- 紧凑横屏：发信方叠在提示上方，输入区保持在右侧 ---------- */

@@ -80,6 +80,7 @@ input:focus-visible {
 .game-viewport {
   --game-scale: 1;
   --compact-text-adjust: 100%;
+  --compact-text-factor: 1;
   --relay-text-adjust: 100%;
 
   position: absolute;
@@ -120,15 +121,11 @@ input:focus-visible {
 /* 手机只补偿低于正文层级的小字，不改变画布布局或控件外形。 */
 .game-viewport[data-compact-readability="true"] :where(
   .broadcast-header,
-  .chat-stream,
   .disconnect-notice,
   .phone-ocr-notice,
   .social-toast,
   .social-actions,
   .gift-tray,
-  .relay-bar,
-  .interaction-copy,
-  .relay-console,
   .phone-status,
   .archive-footer,
   .ab-topbar,
@@ -142,16 +139,7 @@ input:focus-visible {
   text-size-adjust: var(--compact-text-adjust);
 }
 
-/* 弹幕回传卡是手机上的主要操作区，需要比普通遥测小字更强的局部补偿。 */
-.game-viewport[data-compact-readability="true"] :where(
-  .relay-bar,
-  .relay-speaker,
-  .interaction-copy,
-  .relay-console
-) {
-  -webkit-text-size-adjust: var(--relay-text-adjust);
-  text-size-adjust: var(--relay-text-adjust);
-}
+/* 回传卡不用 text-size-adjust：它只放大字形、不撑开格子，提示会盖住输入框。 */
 
 @media (orientation: portrait) and (pointer: coarse) and (max-width: 900px) {
   .game-viewport {
@@ -657,6 +645,7 @@ input:focus-visible {
 .chat-line {
   width: fit-content;
   max-width: 100%;
+  flex-shrink: 0;
   margin: 4px 0 0;
   padding: 5px 12px 6px;
   overflow: hidden;
@@ -685,6 +674,28 @@ input:focus-visible {
 
 .chat-line.replayed {
   animation: comment-stack-rise 390ms var(--ease-out) both;
+}
+
+/* 横屏手机把 1920 画布缩得很小。text-size-adjust 只放大字形、不撑开行盒，
+   再叠加 flex 压缩，弹幕会挤成一叠被裁切的残片。这里关掉自动放大，
+   用真实字号把行盒一起撑开，装不下的旧弹幕从上方裁掉。 */
+.game-viewport[data-compact-readability="true"] .chat-stream {
+  /* 行距 = 字号 × 行高 + 上下内边距 11px + 行间距 4px。高度取整行，避免最上面一行被切掉一半。 */
+  --chat-line-size: calc(clamp(15px, 1.05cqw, 18px) * var(--compact-text-factor, 1) * 1.48 + 15px);
+  width: calc(620px * var(--compact-text-factor, 1));
+  max-width: 72%;
+  max-height: round(down, min(46cqh, 360px), var(--chat-line-size));
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.game-viewport[data-compact-readability="true"] .chat-line {
+  font-size: calc(clamp(15px, 1.05cqw, 18px) * var(--compact-text-factor, 1));
+}
+
+.game-viewport[data-compact-readability="true"] .chat-line .gift-mini {
+  width: calc(18px * var(--compact-text-factor, 1));
+  height: calc(18px * var(--compact-text-factor, 1));
 }
 
 .chat-line.player {
@@ -1641,6 +1652,23 @@ input:focus-visible {
   border-radius: 99px;
   background: rgba(255, 255, 255, 0.88);
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.35);
+}
+
+/* 画布被缩到手机上时，按屏幕像素把离开条放大，避免缩成几个像素后无法点按。 */
+.game-viewport[data-compact-readability="true"] .ios-exit-gesture {
+  bottom: calc(8px / var(--game-scale));
+  width: min(92cqw, calc(320px / var(--game-scale)));
+  padding: calc(12px / var(--game-scale)) calc(16px / var(--game-scale)) calc(8px / var(--game-scale));
+}
+
+.game-viewport[data-compact-readability="true"] .ios-exit-gesture small {
+  margin-bottom: calc(8px / var(--game-scale));
+  font-size: calc(14px / var(--game-scale));
+}
+
+.game-viewport[data-compact-readability="true"] .ios-exit-gesture span {
+  width: calc(140px / var(--game-scale));
+  height: calc(5px / var(--game-scale));
 }
 
 .phone-surface {
@@ -4740,9 +4768,8 @@ input:focus-visible {
 }
 
 .a4-drag-ghost {
-  position: fixed;
+  position: absolute;
   z-index: 26;
-  width: clamp(72px, 9cqw, 104px);
   margin: 0;
   pointer-events: none;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.58);

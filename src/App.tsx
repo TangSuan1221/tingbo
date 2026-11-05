@@ -40,6 +40,7 @@ import {
 } from "./saveData";
 import {
   generateRuntimeVideo,
+  playerRuntimeError,
   useZaohuaVideoBridge,
   type RuntimeVideoUpdate
 } from "./runtimeVideo";
@@ -590,6 +591,15 @@ function chooseA3Event(seed: string, hasEcho: boolean): A3Event {
 
 export default function App() {
   const gameViewportRef = useRef<HTMLDivElement>(null);
+  const a4DragRef = useRef<{
+    piece: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const dialogueHistoryRef = useRef<Record<string, { role: "user" | "assistant"; content: string }[]>>({});
   const activeDialogueRef = useRef<RuntimeRequest | null>(null);
@@ -669,7 +679,15 @@ export default function App() {
   const [a4PuzzleActive, setA4PuzzleActive] = useState(false);
   const [a4PuzzleSolved, setA4PuzzleSolved] = useState(false);
   const [a4PuzzlePieces, setA4PuzzlePieces] = useState<Array<number | null>>([null, null, null, null]);
-  const [a4DragState, setA4DragState] = useState<{ piece: number; x: number; y: number } | null>(null);
+  const [a4DragState, setA4DragState] = useState<{
+    piece: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
   const [a4DragOverSlot, setA4DragOverSlot] = useState<number | null>(null);
   const [a4SearchQuery, setA4SearchQuery] = useState("");
   const [a4SearchComplete, setA4SearchComplete] = useState(false);
@@ -872,6 +890,7 @@ export default function App() {
 
       viewport.style.setProperty("--game-scale", scale.toFixed(6));
       viewport.style.setProperty("--compact-text-adjust", `${compactTextAdjust.toFixed(1)}%`);
+      viewport.style.setProperty("--compact-text-factor", (compactTextAdjust / 100).toFixed(3));
       viewport.style.setProperty("--relay-text-adjust", `${relayTextAdjust.toFixed(1)}%`);
       viewport.dataset.compactReadability = String(compactReadability);
     };
@@ -1501,25 +1520,39 @@ export default function App() {
     setStepIndex(act4StartIndex);
   }
 
+  function readGameScale() {
+    const viewport = gameViewportRef.current;
+    if (!viewport) return 1;
+    const scale = Number.parseFloat(getComputedStyle(viewport).getPropertyValue("--game-scale"));
+    return Number.isFinite(scale) && scale > 0 ? scale : 1;
+  }
+
   function beginExitSwipe(event: ReactPointerEvent<HTMLButtonElement>) {
     if (!isPhoneExitEnabled || runtimeUrl) return;
     swipeStartYRef.current = event.clientY;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    swipeOffsetRef.current = 0;
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // 部分手机浏览器会在触摸结束后拒绝捕获，点按仍可离开。
+    }
   }
 
   function updateExitSwipe(event: ReactPointerEvent<HTMLButtonElement>) {
     if (swipeStartYRef.current === null) return;
-    const nextOffset = Math.min(110, Math.max(0, swipeStartYRef.current - event.clientY));
-    swipeOffsetRef.current = nextOffset;
-    setSwipeOffset(nextOffset);
+    const delta = Math.max(0, swipeStartYRef.current - event.clientY);
+    swipeOffsetRef.current = delta;
+    const scale = readGameScale();
+    setSwipeOffset(Math.min(120 / scale, delta / scale));
   }
 
   function finishExitSwipe(event: ReactPointerEvent<HTMLButtonElement>) {
     if (swipeStartYRef.current === null) return;
-    if (swipeOffsetRef.current >= 58) setPhoneView("home");
+    const traveled = swipeOffsetRef.current;
     swipeStartYRef.current = null;
     swipeOffsetRef.current = 0;
     setSwipeOffset(0);
+    if (traveled >= 24) setPhoneView("home");
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
@@ -1560,7 +1593,7 @@ export default function App() {
         reply: current?.reply || "",
         intent: current?.intent || "",
         videoUrl: null,
-        error: error instanceof Error ? error.message : "Runtime生成失败。"
+        error: error instanceof Error ? playerRuntimeError(error.message) : "Runtime生成失败。"
       }));
     }
   }
@@ -1695,25 +1728,61 @@ export default function App() {
     return Number.isInteger(slot) && slot >= 0 && slot < 4 ? slot : null;
   }
 
+  function pointInBroadcastFrame(clientX: number, clientY: number) {
+    const frame = gameViewportRef.current?.querySelector<HTMLElement>(".broadcast-frame");
+    if (!frame) return { x: clientX, y: clientY };
+    const rect = frame.getBoundingClientRect();
+    const scaleX = rect.width / frame.offsetWidth || 1;
+    const scaleY = rect.height / frame.offsetHeight || 1;
+    return {
+      x: (clientX - rect.left) / scaleX,
+      y: (clientY - rect.top) / scaleY
+    };
+  }
+
   function beginA4PuzzleDrag(event: ReactPointerEvent<HTMLButtonElement>, piece: number) {
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
-    setA4DragState({ piece, x: event.clientX, y: event.clientY });
+    const pieceEl = event.currentTarget;
+    const pointer = pointInBroadcastFrame(event.clientX, event.clientY);
+    const rect = pieceEl.getBoundingClientRect();
+    const center = pointInBroadcastFrame(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    const next = {
+      piece,
+      x: center.x,
+      y: center.y,
+      width: pieceEl.offsetWidth,
+      height: pieceEl.offsetHeight,
+      offsetX: center.x - pointer.x,
+      offsetY: center.y - pointer.y
+    };
+    a4DragRef.current = next;
+    setA4DragState(next);
     setA4DragOverSlot(null);
   }
 
   function moveA4PuzzleDrag(event: ReactPointerEvent<HTMLButtonElement>, piece: number) {
-    if (a4DragState?.piece !== piece) return;
+    const current = a4DragRef.current;
+    if (current?.piece !== piece) return;
     event.preventDefault();
-    setA4DragState({ piece, x: event.clientX, y: event.clientY });
+    const pointer = pointInBroadcastFrame(event.clientX, event.clientY);
+    const next = {
+      ...current,
+      x: pointer.x + current.offsetX,
+      y: pointer.y + current.offsetY
+    };
+    a4DragRef.current = next;
+    setA4DragState(next);
     setA4DragOverSlot(getA4PuzzleSlotAtPoint(event.clientX, event.clientY));
   }
 
   function endA4PuzzleDrag(event: ReactPointerEvent<HTMLButtonElement>, piece: number) {
-    if (a4DragState?.piece !== piece) return;
+    const current = a4DragRef.current;
+    if (current?.piece !== piece) return;
     event.preventDefault();
     const slot = getA4PuzzleSlotAtPoint(event.clientX, event.clientY);
     if (slot !== null) placeA4PuzzlePiece(piece, slot);
+    a4DragRef.current = null;
     setA4DragState(null);
     setA4DragOverSlot(null);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -1722,6 +1791,7 @@ export default function App() {
   }
 
   function cancelA4PuzzleDrag(event: ReactPointerEvent<HTMLButtonElement>) {
+    a4DragRef.current = null;
     setA4DragState(null);
     setA4DragOverSlot(null);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -2585,7 +2655,12 @@ export default function App() {
             {a4DragState && (
               <div
                 className={`a4-puzzle-piece a4-drag-ghost piece-${a4DragState.piece}`}
-                style={{ left: a4DragState.x, top: a4DragState.y }}
+                style={{
+                  left: a4DragState.x,
+                  top: a4DragState.y,
+                  width: a4DragState.width,
+                  height: a4DragState.height
+                }}
                 aria-hidden="true"
               />
             )}
@@ -2745,10 +2820,8 @@ export default function App() {
             onPointerMove={updateExitSwipe}
             onPointerUp={finishExitSwipe}
             onPointerCancel={finishExitSwipe}
-            onClick={(event) => {
-              if (event.detail === 0) setPhoneView("home");
-            }}
-            aria-label="上滑离开直播，返回手机桌面"
+            onClick={() => setPhoneView("home")}
+            aria-label="上滑或点按离开直播，返回手机桌面"
           >
             <small>上滑离开直播</small>
             <span />
@@ -3823,7 +3896,7 @@ export default function App() {
             )}
             {job?.status === "failed" && (
               <div className="error-strip" role="alert">
-                <p>{job.error}</p>
+                <p>{playerRuntimeError(job.error || "")}</p>
                 <button type="button" onClick={retryPendingRuntime}>
                   重新锁定
                 </button>
@@ -3890,7 +3963,7 @@ export default function App() {
               )}
               {job?.status === "failed" && (
                 <div className="error-strip" role="alert">
-                  <p>{job.error}</p>
+                  <p>{playerRuntimeError(job.error || "")}</p>
                   <button type="button" onClick={retryPendingRuntime}>重新生成反应</button>
                   <button type="button" onClick={skipFailedRuntime}>跳过反应，继续直播</button>
                 </div>
@@ -3943,7 +4016,7 @@ export default function App() {
             )}
             {job?.status === "failed" && (
               <div className="error-strip" role="alert">
-                <p>{job.error}</p>
+                <p>{playerRuntimeError(job.error || "")}</p>
                 <button type="button" onClick={retryPendingRuntime}>重新发送</button>
                 <button type="button" onClick={skipFailedRuntime}>跳过生成继续</button>
               </div>
@@ -4031,6 +4104,12 @@ export default function App() {
                   已附加：监视器墙供电改造记录
                 </span>
               )}
+              {isAct2Verification && !breakerEvidence && (
+                <button type="button" className="leave-live-control" onClick={() => setPhoneView("home")}>
+                  <PhoneAppIcon kind="home" />
+                  离开直播去查找
+                </button>
+              )}
             </div>
 
             <div className="relay-console">
@@ -4097,7 +4176,7 @@ export default function App() {
 
               {job?.status === "failed" && (
                 <div className="error-strip" role="alert">
-                  <p>{job.error}</p>
+                  <p>{playerRuntimeError(job.error || "")}</p>
                   <button type="button" onClick={retryPendingRuntime}>
                     重新发送
                   </button>

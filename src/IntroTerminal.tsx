@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./mainMenu.css";
 import "./introTerminal.css";
-import { CrtDefs, barrelFilterStyle, useElementSize } from "./crt";
+import { CrtDefs, barrelFilterStyle, isIosWebKit, useElementSize } from "./crt";
 
 type LineKind = "sys" | "rule" | "body" | "prompt";
 
@@ -67,6 +67,8 @@ type Phase = "typing" | "hold" | "leaving";
 
 export function IntroTerminal({ onDone }: { onDone: () => void }) {
   const [bendRef, bendSize] = useElementSize<HTMLDivElement>();
+  // 见 isIosWebKit：iOS 不能把持续变化的文字放进整屏位移滤镜。
+  const distort = !isIosWebKit();
   const delays = useMemo(() => buildDelays(script), []);
   const total = delays.length;
   const [typed, setTyped] = useState(() => (prefersReducedMotion() ? total : 0));
@@ -155,7 +157,7 @@ export function IntroTerminal({ onDone }: { onDone: () => void }) {
         if (event.button === 0) advance();
       }}
     >
-      <CrtDefs width={bendSize.width} height={bendSize.height} />
+      <CrtDefs width={distort ? bendSize.width : 0} height={distort ? bendSize.height : 0} />
 
       <div className="mm-tv">
         <div className="mm-screen">
@@ -167,7 +169,12 @@ export function IntroTerminal({ onDone }: { onDone: () => void }) {
               <div className="mm-scene-roll" />
             </div>
 
-            <div className="it-bend" ref={bendRef} style={barrelFilterStyle(bendSize.width)} aria-hidden="true">
+            <div
+              className="it-bend"
+              ref={bendRef}
+              style={distort ? barrelFilterStyle(bendSize.width) : undefined}
+              aria-hidden="true"
+            >
               <div className="it-text">{rendered}</div>
             </div>
           </div>

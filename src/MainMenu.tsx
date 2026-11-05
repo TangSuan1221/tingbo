@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./mainMenu.css";
-import { CrtDefs, barrelFilterStyle, useElementSize } from "./crt";
+import { CrtDefs, barrelFilterStyle, isIosWebKit, useElementSize } from "./crt";
 import { ChapterId, SaveData, chapterById, chapters, formatSaveTime } from "./saveData";
 
 const sceneImageUrl = "/media/runtime-references/WEB-G00-live-preview.jpg";
@@ -29,6 +29,7 @@ export function MainMenu({ saveData, muted, onStart, onContinue, onLoad, onToggl
   const [clearArmed, setClearArmed] = useState(false);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [bendRef, bendSize] = useElementSize<HTMLDivElement>();
+  const distort = !isIosWebKit();
   const latest = saveData.latest;
   const latestChapter = latest ? chapterById(latest.chapter) : null;
 
@@ -158,12 +159,12 @@ export function MainMenu({ saveData, muted, onStart, onContinue, onLoad, onToggl
 
   return (
     <article className={`mm mm-view-${view}`} aria-label="停播之后 主菜单">
-      <CrtDefs width={bendSize.width} height={bendSize.height} />
+      <CrtDefs width={distort ? bendSize.width : 0} height={distort ? bendSize.height : 0} />
 
       <div className="mm-tv">
         <div className="mm-screen">
           <div className="mm-scene" aria-hidden="true">
-            <div className="mm-scene-bend" ref={bendRef} style={barrelFilterStyle(bendSize.width)}>
+            <div className="mm-scene-bend" ref={bendRef} style={distort ? barrelFilterStyle(bendSize.width) : undefined}>
               <img className="mm-scene-wash" src={sceneImageUrl} alt="" />
               <div className="mm-scene-plate">
                 <img src={sceneImageUrl} alt="" />

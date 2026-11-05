@@ -171,7 +171,10 @@ export async function generateRuntimeVideo(
       }
     }
     if (!decision) {
-      throw new BridgeError(`剧情AI回复生成失败：${errorText(dialogueError)}。未使用预设回复，也未提交视频生成。`);
+      const credits = creditsMessage(errorText(dialogueError));
+      throw new BridgeError(
+        credits || `剧情AI回复生成失败：${errorText(dialogueError)}。未使用预设回复，也未提交视频生成。`
+      );
     }
   }
   const plan = buildBrowserRuntimePlan(request, decision);
@@ -227,7 +230,8 @@ export async function generateRuntimeVideo(
     if (["completed", "succeeded", "ready"].includes(status)) break;
     if (["failed", "error", "cancelled", "canceled"].includes(status)) {
       const detail = asRecord(statusBody.error).message || statusBody.error;
-      throw new BridgeError(`视频生成失败：${errorText(detail) || status}`);
+      const credits = creditsMessage(errorText(detail));
+      throw new BridgeError(credits || `视频生成失败：${errorText(detail) || status}`);
     }
   }
 
@@ -380,8 +384,23 @@ async function loadBitmap(blob: Blob): Promise<{
   };
 }
 
+const CREDITS_TIP = "创作积分不足，补充积分后再发送。";
+
+export function playerRuntimeError(text: string) {
+  if (!text) return "";
+  if (text === CREDITS_TIP || /insufficient_credits_error/i.test(text)) return CREDITS_TIP;
+  return text;
+}
+
+function creditsMessage(text: string) {
+  const message = playerRuntimeError(text);
+  return message === CREDITS_TIP ? message : "";
+}
+
 function friendlyBridgeError(error: unknown) {
   const bridgeError = asBridgeError(error);
+  const credits = creditsMessage(bridgeError.message);
+  if (credits) return new BridgeError(credits, bridgeError.status);
   if (unsupportedPath(bridgeError)) {
     return new BridgeError("当前宿主版本不支持视频生成，请改用已更新的造化主站 Web。", bridgeError.status);
   }

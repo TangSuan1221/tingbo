@@ -54,7 +54,13 @@ type PageChrome = {
 const mainThreadTitle = "明天就要拆的青河电视台，今晚里面怎么还有灯？";
 
 const chrome: Record<Exclude<ProloguePage, "cover" | "intro">, PageChrome> = {
-  forum: { site: "青河同城", title: "本地热帖", source: "bbs.qinghe-tongcheng.cn" },
+  forum: {
+    site: "青河同城",
+    title: "本地热帖",
+    source: "bbs.qinghe-tongcheng.cn",
+    back: "cover",
+    backLabel: "返回"
+  },
   thread: {
     site: "青河同城",
     title: mainThreadTitle,

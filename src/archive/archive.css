@@ -135,6 +135,8 @@
 
 /* 返回：老设备按键提示（● ESC 返回） */
 .ab-back {
+  position: relative;
+  z-index: 2;
   display: inline-flex;
   height: 2.5em;
   align-items: center;
@@ -147,6 +149,8 @@
   letter-spacing: 0.1em;
   white-space: nowrap;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   clip-path: var(--ab-notch);
   transition: background-color 160ms ease, color 160ms ease;
 }

@@ -40,6 +40,20 @@ export function CrtDefs({ width, height }: { width: number; height: number }) {
 
 export const barrelFilterStyle = (width: number) => (width > 0 ? { filter: "url(#mm-crt-barrel)" } : undefined);
 
+/**
+ * iPhone / iPad 上的 WebKit。
+ * 序章把逐字变化的文字放进整幅 1920×1080 的 feDisplacementMap 时，
+ * 滤镜按布局尺寸而不是缩放后的屏幕尺寸栅格化，再乘上设备像素比，
+ * 每次打字都会重绘一块巨大的 GPU 缓冲。iOS 会因此杀掉网页进程，
+ * 宿主只能显示自己的「加载失败，请重试」。
+ */
+export function isIosWebKit() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  if (/iPad|iPhone|iPod/.test(ua)) return true;
+  return navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+}
+
 const barrelMap = createBarrelMap();
 
 /** 生成 CRT 桶形畸变位移图：R/G 通道分别编码 x/y 偏移，边缘越远偏移越大。 */
